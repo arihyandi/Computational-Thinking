@@ -225,6 +225,43 @@ button:focus-visible, summary:focus-visible { outline: 3px solid var(--blue); ou
 .btn.danger { background: var(--red); border-color: var(--red); color: var(--on-color); }
 .teacher h3 { font-size: 20px; margin-top: 8px; }
 
+/* masuk, bilah pemain, pantauan guru */
+.who { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; background: var(--card); border: 2px solid var(--line); border-radius: 16px; padding: 10px 14px; margin-bottom: 16px; }
+.who .me { flex: 1 1 200px; min-width: 0; overflow-wrap: anywhere; }
+.who .btn { font-size: 16px; padding: 6px 14px; }
+.sync { font-size: 13px; font-weight: 800; border-radius: 999px; padding: 2px 10px; background: var(--paper); color: var(--muted); border: 1px solid var(--line); }
+.sync.on { background: var(--green-soft); color: var(--ink); border-color: var(--green); }
+.sync.off { background: var(--yellow-soft); color: var(--ink); border-color: var(--yellow); }
+.who .confirm { flex-basis: 100%; }
+.linkbtn { background: none; border: 0; padding: 4px 0; color: var(--blue); font-weight: 800; text-decoration: underline; text-underline-offset: 3px; }
+.foot-links { display: flex; justify-content: center; padding-top: 20px; }
+.monitor { --c: var(--blue); --c-soft: var(--blue-soft); display: grid; gap: 16px; }
+.monitor h1 { font-size: clamp(30px, 6vw, 44px); color: var(--blue); }
+.mon-head { display: flex; flex-wrap: wrap; align-items: end; justify-content: space-between; gap: 12px; padding-top: 8px; }
+.tiles { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
+.tilestat { background: var(--card); border: 2px solid var(--line); border-radius: 16px; padding: 12px 16px; }
+.tilestat b { display: block; font-family: var(--font-display); font-size: 34px; line-height: 1.1; font-variant-numeric: tabular-nums; }
+.tilestat span { font-size: 14px; font-weight: 700; color: var(--muted); }
+.tilestat.live b { color: var(--blue); }
+.tilestat.done b { color: var(--green); }
+.mon-tools { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; }
+.mon-tools select { font: inherit; font-weight: 700; padding: 6px 10px; border-radius: 10px; border: 2px solid var(--line); background: var(--card); color: var(--ink); }
+.mon-table { background: var(--card); border: 2px solid var(--line); border-radius: 16px; padding: 4px 8px; }
+.mon-table table { min-width: 720px; }
+.mon-table td { font-variant-numeric: tabular-nums; }
+.pill { display: inline-flex; align-items: center; gap: 6px; border-radius: 999px; padding: 2px 10px; font-size: 13px; font-weight: 800; white-space: nowrap; border: 1px solid var(--line); background: var(--paper); color: var(--muted); }
+.pill::before { content: ""; width: 8px; height: 8px; border-radius: 50%; background: currentColor; }
+.pill.live { background: var(--blue-soft); border-color: var(--blue); color: var(--ink); }
+.pill.live::before { background: var(--blue); animation: pulse 1.4s infinite; }
+.pill.idle { background: var(--yellow-soft); border-color: var(--yellow); color: var(--ink); }
+.pill.idle::before { background: var(--yellow); }
+.pill.done { background: var(--green-soft); border-color: var(--green); color: var(--ink); }
+.pill.done::before { background: var(--green); }
+.mon-note { color: var(--muted); font-size: 15px; max-width: 70ch; }
+.pin-form { display: grid; gap: 8px; max-width: 320px; }
+.pin-form input { letter-spacing: .3em; }
+@keyframes pulse { 50% { opacity: .3; } }
+
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation: none !important; transition: none !important; }
 }
@@ -240,6 +277,7 @@ button:focus-visible, summary:focus-visible { outline: 3px solid var(--blue); ou
   .tile svg { width: 36px; height: 36px; }
   .topbar { padding-right: 0; padding-top: 44px; }
   .cert-list { grid-template-columns: minmax(0, 1fr); }
+  .tiles { grid-template-columns: minmax(0, 1fr); }
 }
 </style>
 </head>
@@ -473,6 +511,64 @@ button:focus-visible, summary:focus-visible { outline: 3px solid var(--blue); ou
     if (at >= 0) roster[at] = row; else roster.unshift(row);
     savePlayers();
   }
+  function newId() { return 'p' + Date.now().toString(36) + Math.random().toString(36).slice(2, 7); }
+
+  /* ---------- kirim kemajuan ke Pantauan Guru (data bersama) ---------- */
+  function useCap(name) {
+    try {
+      if (window.claude && window.claude.use) return window.claude.use(name).catch(function () { return null; });
+    } catch (e) {}
+    return Promise.resolve(null);
+  }
+  var DB = null, syncState = 'wait', queued = null, writing = false;
+  var dbReady = useCap('db').then(function (d) {
+    DB = d;
+    if (!d) setSync('off');
+    else if (player) report({}, true);
+    return d;
+  });
+  function setSync(st) {
+    syncState = st;
+    var el = document.getElementById('sync');
+    if (!el) return;
+    el.className = 'sync ' + st;
+    el.textContent = st === 'on' ? 'Terhubung ke guru' : st === 'off' ? 'Hanya tersimpan di perangkat ini' : 'Menghubungkan…';
+  }
+  function bintangObj() { var o = {}; PILAR.forEach(function (p) { o[p.id] = best[p.id] || 0; }); return o; }
+  function report(changes, force) {
+    if (!player) return;
+    var changed = false;
+    for (var k in changes) if (player[k] !== changes[k]) { player[k] = changes[k]; changed = true; }
+    if (!changed && !force) return;
+    savePlayers();
+    queued = {
+      id: String(player.id),
+      body: {
+        nama: player.nama, kelas: player.kelas || '', mulai: player.tanggal || '',
+        status: player.status || 'main', lokasi: player.lokasi || 'Peta pulau', salah: player.salah || 0,
+        bintang: bintangObj(), total: totalStars(), aktif: Date.now()
+      }
+    };
+    flush();
+  }
+  function flush() {
+    if (!DB || syncState === 'off' || writing || !queued) return;
+    var job = queued; queued = null; writing = true;
+    DB.collection('sesi').doc(job.id).set(job.body).then(function () {
+      writing = false; setSync('on'); flush();
+    }, function (e) {
+      writing = false;
+      var code = e && e.code;
+      if ((code === 'unavailable' || code === 'resource_exhausted') && !job.retried) {
+        job.retried = true;
+        if (!queued) queued = job;
+        setTimeout(flush, 1500 + Math.random() * 1500);
+      } else {
+        setSync('off');
+      }
+    });
+  }
+
   function tanggal(iso) {
     try { return new Date(iso).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' }); } catch (e) { return ''; }
   }
@@ -513,15 +609,20 @@ button:focus-visible, summary:focus-visible { outline: 3px solid var(--blue); ou
   function sleep(ms) { return new Promise(function (r) { setTimeout(r, ms); }); }
   function shake(el) { el.classList.remove('shake'); void el.offsetWidth; el.classList.add('shake'); }
   function colorVars(c) { return '--c:var(--' + c + ');--c-soft:var(--' + c + '-soft)'; }
+  function addMistake() {
+    S.mistakes++;
+    if (player) report({ salah: (player.salah || 0) + 1 });
+  }
   function starsFor(m) { return m === 0 ? 3 : m <= 2 ? 2 : 1; }
 
   /* ---------- peta pulau ---------- */
   function showHome(openTeacher) {
     var total = totalStars();
+    if (!player) { showLogin(); return; }
+    report({ lokasi: 'Peta pulau' });
     var banner = allDone()
-      ? '<div class="banner"><p><b>Semua pulau sudah selesai!</b> ' +
-          (player ? 'Piagam untuk ' + esc(player.nama) + ' sudah siap.' : 'Tulis namamu untuk mendapatkan piagam dari Kompi.') +
-        '</p><button class="btn primary" type="button" id="toCert">' + (player ? 'Lihat piagam ›' : 'Tulis namamu ›') + '</button></div>'
+      ? '<div class="banner"><p><b>Semua pulau sudah selesai!</b> Piagam untuk ' + esc(player.nama) + ' sudah siap.</p>' +
+        '<button class="btn primary" type="button" id="toCert">Lihat piagam ›</button></div>'
       : '';
     var cards = PILAR.map(function (p, i) {
       var got = best[p.id] || 0;
@@ -541,12 +642,15 @@ button:focus-visible, summary:focus-visible { outline: 3px solid var(--blue); ou
         '<h1>Petualangan Kompi</h1>' +
         '<p class="lead">Kompi si robot mau menjelajah empat pulau. Setiap pulau punya tantangan berpikir. Bantu Kompi mengumpulkan semua bintang!</p></div>' +
         '<div class="total">' + star(true) + '<span>' + total + ' dari 12 bintang</span><span class="bar" aria-hidden="true"><i style="width:' + (total / 12 * 100) + '%"></i></span></div>' +
-      '</header>' + banner +
+      '</header>' + whoBar() + banner +
       '<section class="islands" aria-label="Pilih pulau">' + cards + '</section>' +
-      teacherNotes(openTeacher);
+      teacherNotes(openTeacher) +
+      '<div class="foot-links"><button class="linkbtn" type="button" id="toMonitor">Pantauan Guru</button></div>';
+    wireWho();
+    document.getElementById('toMonitor').addEventListener('click', showMonitor);
 
     var tc = document.getElementById('toCert');
-    if (tc) tc.addEventListener('click', function () { blip(); if (player) showCert(); else showLogin(); });
+    if (tc) tc.addEventListener('click', function () { blip(); showCert(); });
     var clr = document.getElementById('clearRoster');
     if (clr) clr.addEventListener('click', function () { document.getElementById('clearAsk').hidden = false; clr.hidden = true; });
     var clrNo = document.getElementById('clearNo');
@@ -564,6 +668,37 @@ button:focus-visible, summary:focus-visible { outline: 3px solid var(--blue); ou
     window.scrollTo(0, 0);
   }
 
+  function whoBar() {
+    return '<div class="who"><p class="me">Pemain: <b>' + esc(player.nama) + '</b>' + (player.kelas ? ' · Kelas ' + esc(player.kelas) : '') + '</p>' +
+      '<span class="sync" id="sync"></span>' +
+      '<button class="btn" type="button" id="rename">Ubah nama</button>' +
+      '<button class="btn" type="button" id="logout">Keluar</button>' +
+      logoutAsk() + '</div>';
+  }
+  function logoutAsk() {
+    return '<div class="confirm" id="outAsk" hidden><p>Keluar sebagai <b>' + esc(player.nama) + '</b>? Bintang di perangkat ini dikosongkan supaya teman berikutnya bisa masuk. Namamu tetap tercatat untuk guru.</p>' +
+      '<div class="actions"><button class="btn danger" type="button" id="outYes">Ya, keluar</button><button class="btn" type="button" id="outNo">Batal</button></div></div>';
+  }
+  function wireWho(actId) {
+    setSync(syncState);
+    var r = document.getElementById('rename');
+    if (r) r.addEventListener('click', function () { showLogin(true); });
+    var ask = document.getElementById('outAsk');
+    var hideWhenAsking = actId ? document.getElementById(actId) : null;
+    document.getElementById('logout').addEventListener('click', function () {
+      ask.hidden = false; if (hideWhenAsking) hideWhenAsking.hidden = true;
+      document.getElementById('outYes').focus();
+    });
+    document.getElementById('outNo').addEventListener('click', function () { ask.hidden = true; if (hideWhenAsking) hideWhenAsking.hidden = false; });
+    document.getElementById('outYes').addEventListener('click', logout);
+  }
+  function logout() {
+    report({ status: 'keluar', lokasi: 'Sudah keluar' }, true);
+    syncRoster();
+    player = null; best = {}; save(); savePlayers();
+    showLogin();
+  }
+
   function teacherNotes(open) {
     var list = roster.length
       ? '<div class="tbl"><table><thead><tr><th>Nama</th><th>Kelas</th><th>Bintang</th><th>Tanggal</th></tr></thead><tbody>' +
@@ -573,7 +708,7 @@ button:focus-visible, summary:focus-visible { outline: 3px solid var(--blue); ou
         '<div class="actions"><button class="btn" type="button" id="clearRoster">Hapus daftar</button></div>' +
         '<div class="confirm" id="clearAsk" hidden><p>Hapus semua nama di daftar ini dari perangkat? Tindakan ini tidak bisa dibatalkan.</p>' +
           '<div class="actions"><button class="btn danger" type="button" id="clearYes">Ya, hapus daftar</button><button class="btn" type="button" id="clearNo">Batal</button></div></div>'
-      : '<p>Belum ada siswa yang menyelesaikan semua pulau di perangkat ini.</p>';
+      : '<p>Belum ada siswa yang masuk di perangkat ini.</p>';
     return '<details class="teacher"' + (open ? ' open' : '') + '><summary>Catatan untuk Guru</summary><div class="body">' +
       '<p>Permainan ini mengenalkan empat pilar berpikir komputasional untuk siswa SD kelas 3 sampai 6. Setiap pulau bisa dimainkan dalam 5–10 menit, sendiri atau berpasangan.</p>' +
       '<div class="tbl"><table><thead><tr><th>Pilar</th><th>Kegiatan di game</th><th>Pertanyaan diskusi</th></tr></thead><tbody>' +
@@ -586,7 +721,8 @@ button:focus-visible, summary:focus-visible { outline: 3px solid var(--blue); ou
       '<li><b>Bintang:</b> 3 bintang jika tanpa salah, 2 bintang jika salah 1–2 kali, 1 bintang jika salah lebih dari itu. Bintang tersimpan di browser perangkat masing-masing.</li>' +
       '<li><b>Kegiatan lanjutan tanpa komputer:</b> buat papan 5×5 dari lakban di lantai. Satu siswa menjadi “Kompi”, temannya membacakan kartu perintah Atas/Bawah/Kiri/Kanan.</li>' +
       '<li><b>Tips:</b> minta siswa membaca program dengan suara keras sebelum menekan Jalankan, supaya mereka terbiasa menelusuri langkah.</li>' +
-      '<li><b>Nama &amp; piagam:</b> setelah keempat pulau selesai, siswa menulis nama dan kelas, lalu mendapat piagam. Tekan <b>Pemain baru</b> di halaman piagam supaya siswa berikutnya mulai dari nol di komputer yang sama.</li>' +
+      '<li><b>Masuk &amp; keluar:</b> siswa menulis nama dan kelas sebelum bermain. Setelah selesai, siswa menekan <b>Keluar</b> supaya teman berikutnya mulai dari nol di komputer yang sama.</li>' +
+      '<li><b>Pantauan Guru:</b> tombol di bagian paling bawah halaman. Di sana guru melihat siapa yang sedang bermain, pulau yang sedang dikerjakan, jumlah salah, dan bintang, langsung dari perangkat mana pun. Dikunci dengan PIN guru.</li>' +
       '</ul>' +
       '<h3>Daftar pemain di perangkat ini</h3>' + list +
       '</div></details>';
@@ -606,7 +742,7 @@ button:focus-visible, summary:focus-visible { outline: 3px solid var(--blue); ou
     app.innerHTML =
       '<div style="' + colorVars(p.c) + '">' +
       '<div class="topbar"><button class="back" type="button" id="back">‹ Peta</button>' +
-      '<div class="stage-title"><small>Pulau ' + (S.idx + 1) + '</small><b>' + p.name + '</b></div>' +
+      '<div class="stage-title"><small>Pulau ' + (S.idx + 1) + (player ? ' · ' + esc(player.nama) : '') + '</small><b>' + p.name + '</b></div>' +
       '<div class="dots" role="img" aria-label="Soal ' + (S.i + 1) + ' dari ' + p.rounds.length + '">' + dots + '</div></div>' +
       '<section class="card" id="round">' + inner + '</section>' +
       '<div class="say"><div class="mini">' + robot() + '</div><p class="bubble" id="bubble" role="status" aria-live="polite"></p></div>' +
@@ -632,6 +768,7 @@ button:focus-visible, summary:focus-visible { outline: 3px solid var(--blue); ou
     });
   }
   function renderRound() {
+    report({ status: player && player.status === 'selesai' ? 'selesai' : 'main', lokasi: S.p.name + ' · soal ' + (S.i + 1) + ' dari ' + S.p.rounds.length });
     if (S.p.type === 'pick') pickRound();
     else if (S.p.type === 'pattern') patternRound();
     else algoRound();
@@ -667,13 +804,13 @@ button:focus-visible, summary:focus-visible { outline: 3px solid var(--blue); ou
       var wrong = picked.filter(function (c) { return !opts[+c.dataset.k].ok; });
       var missing = opts.filter(function (o, k) { return o.ok && chips[k].getAttribute('aria-pressed') !== 'true'; });
       if (wrong.length) {
-        S.mistakes++; bad();
+        addMistake(); bad();
         wrong.forEach(function (c) { c.classList.add('no'); shake(c); });
         say(opts[+wrong[0].dataset.k].why + ' Ketuk lagi untuk membatalkan pilihan.', 'oops');
         return;
       }
       if (missing.length) {
-        S.mistakes++; bad();
+        addMistake(); bad();
         shake(document.getElementById('chips'));
         say('Hampir! Masih ada ' + missing.length + ' jawaban penting yang belum kamu pilih.', 'oops');
         return;
@@ -727,7 +864,7 @@ button:focus-visible, summary:focus-visible { outline: 3px solid var(--blue); ou
           say(r.why, 'good');
           nextButton(document.getElementById('act'));
         } else {
-          S.mistakes++; bad();
+          addMistake(); bad();
           b.classList.add('no'); shake(b);
           say('Belum tepat. Coba tunjuk satu per satu dari depan dan cari bagian yang berulang.', 'oops');
         }
@@ -865,7 +1002,7 @@ button:focus-visible, summary:focus-visible { outline: 3px solid var(--blue); ou
           place(pos);
           items[i].classList.add('bad');
           bot.classList.add('bonk');
-          S.mistakes++; bad();
+          addMistake(); bad();
           say(fail + ' Ganti langkah itu, lalu jalankan lagi. Ini namanya debugging.', 'oops');
           setBusy(false);
           return;
@@ -890,7 +1027,7 @@ button:focus-visible, summary:focus-visible { outline: 3px solid var(--blue); ou
         nextButton(document.getElementById('act'));
         return;
       }
-      S.mistakes++; bad();
+      addMistake(); bad();
       say(atGoal
         ? 'Kompi sampai di bintang, tapi permatanya belum diambil. Ubah jalannya supaya melewati permata.'
         : 'Programnya selesai, tapi Kompi belum sampai di bintang. Tambahkan atau ubah langkahnya.', 'oops');
@@ -903,8 +1040,9 @@ button:focus-visible, summary:focus-visible { outline: 3px solid var(--blue); ou
     var p = S.p, got = starsFor(S.mistakes);
     best[p.id] = Math.max(best[p.id] || 0, got);
     save();
-    syncRoster();
     var done = allDone();
+    report({ lokasi: 'Selesai ' + p.name, status: done ? 'selesai' : 'main' }, true);
+    syncRoster();
     var msg = got === 3 ? 'Sempurna, tanpa salah sedikit pun!' : got === 2 ? 'Bagus sekali! Hanya sedikit salah.' : 'Kamu berhasil menyelesaikan pulau ini. Coba lagi untuk dapat lebih banyak bintang!';
     var nextP = PILAR[S.idx + 1];
     app.innerHTML =
@@ -917,7 +1055,7 @@ button:focus-visible, summary:focus-visible { outline: 3px solid var(--blue); ou
         '<p><b>' + msg + '</b></p>' +
         '<p>' + p.lesson + '</p>' +
         '<div class="actions" style="justify-content:center">' +
-          (done ? '<button class="btn primary" type="button" id="toCert">' + (player ? 'Lihat piagamku ›' : 'Tulis namamu ›') + '</button>'
+          (done ? '<button class="btn primary" type="button" id="toCert">Lihat piagamku ›</button>'
             : nextP && !best[nextP.id] ? '<button class="btn primary" type="button" id="nextIsland">Pulau berikutnya ›</button>'
             : '<button class="btn primary" type="button" id="toMap">Ke peta ›</button>') +
           '<button class="btn" type="button" id="again">Main lagi</button>' +
@@ -926,55 +1064,63 @@ button:focus-visible, summary:focus-visible { outline: 3px solid var(--blue); ou
     good();
     document.getElementById('back').addEventListener('click', function () { showHome(); });
     document.getElementById('again').addEventListener('click', function () { startStage(p.id); });
-    if (done) document.getElementById('toCert').addEventListener('click', function () { blip(); if (player) showCert(); else showLogin(); });
+    if (done) document.getElementById('toCert').addEventListener('click', function () { blip(); showCert(); });
     else if (nextP && !best[nextP.id]) document.getElementById('nextIsland').addEventListener('click', function () { startStage(nextP.id); });
     else document.getElementById('toMap').addEventListener('click', function () { showHome(); });
     window.scrollTo(0, 0);
   }
 
-  /* ---------- tulis nama ---------- */
-  function showLogin() {
-    var editing = !!player;
+  /* ---------- masuk ---------- */
+  function showLogin(editing) {
+    editing = editing === true && !!player;
     app.innerHTML =
-      '<div style="' + colorVars('blue') + '"><div class="topbar"><button class="back" type="button" id="back">‹ Peta</button></div>' +
+      '<div style="' + colorVars('blue') + '">' +
+      (editing ? '<div class="topbar"><button class="back" type="button" id="back">‹ Peta</button></div>' : '<div class="topbar"></div>') +
       '<section class="card login">' +
         '<div class="mascot">' + robot() + '</div>' +
-        '<p class="eyebrow">Semua pulau selesai</p>' +
-        '<h2 class="task">' + (editing ? 'Ubah nama di piagam' : 'Siapa nama penjelajah hebat ini?') + '</h2>' +
-        '<p>Kamu mengumpulkan <b>' + totalStars() + ' dari 12 bintang</b>. Tulis namamu supaya Kompi bisa membuatkan piagam.</p>' +
+        '<p class="eyebrow">' + (editing ? 'Ubah nama' : 'Masuk') + '</p>' +
+        '<h2 class="task">' + (editing ? 'Perbaiki nama atau kelasmu' : 'Halo, penjelajah! Siapa namamu?') + '</h2>' +
+        '<p>' + (editing ? 'Nama ini muncul di piagam dan di layar guru.' : 'Tulis nama dan kelasmu sebelum mulai. Gurumu bisa melihat siapa yang sedang bermain.') + '</p>' +
         '<form class="login-form" id="loginForm" novalidate>' +
           '<label for="nama">Nama</label>' +
           '<input type="text" id="nama" maxlength="30" autocomplete="off" placeholder="Contoh: Siti Aisyah" value="' + (editing ? esc(player.nama) : '') + '">' +
-          '<label for="kelas">Kelas <span class="opt">(boleh dikosongkan)</span></label>' +
+          '<label for="kelas">Kelas</label>' +
           '<input type="text" id="kelas" maxlength="10" autocomplete="off" placeholder="Contoh: 4B" value="' + (editing ? esc(player.kelas || '') : '') + '">' +
           '<p class="err" id="err" role="alert"></p>' +
-          '<button class="btn primary" type="submit">Simpan dan lihat piagam</button>' +
+          '<button class="btn primary" type="submit">' + (editing ? 'Simpan' : 'Masuk dan mulai ›') + '</button>' +
         '</form>' +
-      '</section></div>';
-    document.getElementById('back').addEventListener('click', function () { showHome(); });
+      '</section>' +
+      '<div class="foot-links"><button class="linkbtn" type="button" id="toMonitor">Pantauan Guru</button></div>' +
+      '</div>';
+    if (editing) document.getElementById('back').addEventListener('click', function () { showHome(); });
+    document.getElementById('toMonitor').addEventListener('click', showMonitor);
     var nama = document.getElementById('nama');
+    var kelas = document.getElementById('kelas');
     nama.focus();
     document.getElementById('loginForm').addEventListener('submit', function (e) {
       e.preventDefault();
       var n = nama.value.replace(/\s+/g, ' ').trim();
-      var k = document.getElementById('kelas').value.replace(/\s+/g, ' ').trim();
-      if (n.length < 2) {
-        document.getElementById('err').textContent = 'Tulis namamu dulu, minimal 2 huruf.';
-        shake(nama); bad(); nama.focus();
-        return;
+      var k = kelas.value.replace(/\s+/g, ' ').trim();
+      var err = document.getElementById('err');
+      if (n.length < 2) { err.textContent = 'Tulis namamu dulu, minimal 2 huruf.'; shake(nama); bad(); nama.focus(); return; }
+      if (!k) { err.textContent = 'Tulis kelasmu juga, misalnya 4B.'; shake(kelas); bad(); kelas.focus(); return; }
+      if (editing) {
+        report({ nama: n, kelas: k });
+      } else {
+        best = {}; save();
+        player = { id: newId(), nama: n, kelas: k, tanggal: new Date().toISOString(), status: 'main', lokasi: 'Peta pulau', salah: 0 };
+        report({}, true);
       }
-      player = editing
-        ? { id: player.id, nama: n, kelas: k, tanggal: player.tanggal }
-        : { id: Date.now(), nama: n, kelas: k, tanggal: new Date().toISOString() };
       syncRoster();
       good();
-      showCert();
+      showHome();
     });
     window.scrollTo(0, 0);
   }
 
   /* ---------- piagam ---------- */
   function showCert() {
+    if (!player) { showLogin(); return; }
     var list = PILAR.map(function (p) {
       return '<li><span>' + p.name + '</span>' + stars(best[p.id] || 0) + '</li>';
     }).join('');
@@ -993,34 +1139,171 @@ button:focus-visible, summary:focus-visible { outline: 3px solid var(--blue); ou
         '<div class="actions" id="certAct" style="justify-content:center">' +
           '<button class="btn primary" type="button" id="toMap">Ke peta</button>' +
           '<button class="btn" type="button" id="rename">Ubah nama</button>' +
-          '<button class="btn" type="button" id="newPlayer">Pemain baru</button>' +
-        '</div>' +
-        '<div class="confirm" id="newAsk" hidden>' +
-          '<p>Mulai untuk pemain baru? Bintang di perangkat ini dikosongkan. Nama <b>' + esc(player.nama) + '</b> tetap tersimpan di daftar guru.</p>' +
-          '<div class="actions"><button class="btn danger" type="button" id="newYes">Ya, pemain baru</button><button class="btn" type="button" id="newNo">Batal</button></div>' +
-        '</div>' +
+          '<button class="btn" type="button" id="logout">Keluar</button>' +
+        '</div>' + logoutAsk() +
       '</section></div>';
     document.getElementById('back').addEventListener('click', function () { showHome(); });
     document.getElementById('toMap').addEventListener('click', function () { showHome(); });
-    document.getElementById('rename').addEventListener('click', showLogin);
-    document.getElementById('newPlayer').addEventListener('click', function () {
-      document.getElementById('newAsk').hidden = false;
-      document.getElementById('certAct').hidden = true;
-      document.getElementById('newYes').focus();
-    });
-    document.getElementById('newNo').addEventListener('click', function () {
-      document.getElementById('newAsk').hidden = true;
-      document.getElementById('certAct').hidden = false;
-    });
-    document.getElementById('newYes').addEventListener('click', function () {
-      best = {}; save();
-      player = null; savePlayers();
-      showHome();
-    });
+    wireWho('certAct');
+    report({ lokasi: 'Melihat piagam' });
     window.scrollTo(0, 0);
   }
 
-  showHome();
+  /* ---------- pantauan guru ---------- */
+  var monUnsub = null, monTimer = null, monDocs = [], monKelas = '';
+  function stopMonitor() {
+    if (monUnsub) { monUnsub(); monUnsub = null; }
+    if (monTimer) { clearInterval(monTimer); monTimer = null; }
+  }
+  function leaveMonitor() {
+    stopMonitor();
+    try { if (location.hash === '#guru') history.replaceState(null, '', location.pathname + location.search); } catch (e) {}
+    if (player) showHome(); else showLogin();
+  }
+  function monShell(inner) {
+    app.innerHTML =
+      '<div class="monitor">' +
+        '<div class="topbar"><button class="back" type="button" id="back">‹ Kembali ke game</button></div>' +
+        inner +
+      '</div>';
+    document.getElementById('back').addEventListener('click', leaveMonitor);
+    window.scrollTo(0, 0);
+  }
+  function unlocked() { try { return sessionStorage.getItem(KEY + '-guru') === '1'; } catch (e) { return false; } }
+  function setUnlocked(v) { try { if (v) sessionStorage.setItem(KEY + '-guru', '1'); else sessionStorage.removeItem(KEY + '-guru'); } catch (e) {} }
+
+  function showMonitor() {
+    monShell('<section class="card"><p class="eyebrow">Pantauan Guru</p><h2 class="task">Menghubungkan…</h2></section>');
+    dbReady.then(function (d) {
+      if (!d) {
+        monShell('<section class="card"><p class="eyebrow">Pantauan Guru</p><h2 class="task">Pantauan langsung belum tersedia di sini</h2>' +
+          '<p class="mon-note">Pantauan langsung hanya berjalan kalau game dibuka dari link claude.ai dengan akun yang boleh menyimpan data. ' +
+          'Di perangkat ini, daftar siswa yang pernah masuk tetap bisa dilihat di <b>Catatan untuk Guru</b>.</p></section>');
+        return;
+      }
+      if (unlocked()) { renderMonitor(); return; }
+      d.doc('pengaturan/guru').get().then(function (snap) {
+        var pin = snap.exists ? String(snap.data().pin || '') : '';
+        pinForm(pin);
+      }, function () {
+        monShell('<section class="card"><h2 class="task">Data guru tidak bisa dibuka</h2><p class="mon-note">Coba muat ulang halaman sebentar lagi.</p></section>');
+      });
+    });
+  }
+  function pinForm(pin) {
+    var creating = !pin;
+    monShell('<section class="card login"><p class="eyebrow">Pantauan Guru</p>' +
+      '<h2 class="task">' + (creating ? 'Buat PIN guru' : 'Masukkan PIN guru') + '</h2>' +
+      '<p class="mon-note">' + (creating
+        ? 'PIN mencegah siswa membuka halaman ini. Pakai 4–6 angka dan ingat baik-baik; PIN berlaku di semua perangkat.'
+        : 'Halaman ini menampilkan nama dan kemajuan semua siswa.') + '</p>' +
+      '<form class="login-form pin-form" id="pinForm" novalidate>' +
+        '<label for="pin">PIN</label><input type="password" id="pin" inputmode="numeric" maxlength="6" autocomplete="off">' +
+        (creating ? '<label for="pin2">Ulangi PIN</label><input type="password" id="pin2" inputmode="numeric" maxlength="6" autocomplete="off">' : '') +
+        '<p class="err" id="err" role="alert"></p>' +
+        '<button class="btn primary" type="submit">' + (creating ? 'Simpan PIN' : 'Buka pantauan') + '</button>' +
+      '</form></section>');
+    var input = document.getElementById('pin');
+    input.focus();
+    document.getElementById('pinForm').addEventListener('submit', function (e) {
+      e.preventDefault();
+      var v = input.value.trim(), err = document.getElementById('err');
+      if (!/^[0-9]{4,6}$/.test(v)) { err.textContent = 'PIN harus 4 sampai 6 angka.'; shake(input); return; }
+      if (creating) {
+        if (document.getElementById('pin2').value.trim() !== v) { err.textContent = 'Kedua PIN belum sama. Ketik ulang.'; return; }
+        DB.doc('pengaturan/guru').set({ pin: v }).then(function () { setUnlocked(true); renderMonitor(); },
+          function () { err.textContent = 'PIN belum tersimpan. Akun ini mungkin tidak boleh menyimpan data. Coba dari akun pemilik game.'; });
+      } else if (v === pin) {
+        setUnlocked(true); renderMonitor();
+      } else {
+        err.textContent = 'PIN salah. Coba lagi.'; shake(input); input.select();
+      }
+    });
+  }
+  function agoText(ms) {
+    var m = Math.floor((Date.now() - ms) / 60000);
+    if (m < 1) return 'baru saja';
+    if (m < 60) return m + ' menit lalu';
+    var h = Math.floor(m / 60);
+    if (h < 24) return h + ' jam lalu';
+    return tanggal(new Date(ms).toISOString());
+  }
+  var LIVE_MS = 3 * 60000;
+  function stateOf(d) {
+    if (d.status === 'keluar') return { t: 'Keluar', c: '' };
+    if (d.status === 'selesai' && Date.now() - d.aktif > LIVE_MS) return { t: 'Selesai semua', c: 'done' };
+    if (Date.now() - d.aktif <= LIVE_MS) return { t: d.status === 'selesai' ? 'Selesai, masih buka' : 'Sedang main', c: 'live' };
+    return { t: 'Tidak aktif', c: 'idle' };
+  }
+  function renderMonitor() {
+    stopMonitor();
+    monShell(
+      '<div class="mon-head"><div><p class="eyebrow">Pantauan Guru</p><h1>Siapa yang sedang bermain?</h1></div>' +
+        '<div class="mon-tools"><label for="kelasFilter"><b>Kelas</b></label><select id="kelasFilter"></select>' +
+        '<button class="btn" type="button" id="lock">Kunci</button></div></div>' +
+      '<div class="tiles" id="tiles"></div>' +
+      '<div class="mon-table tbl" id="monTable"><p class="mon-note" style="padding:12px">Memuat data siswa…</p></div>' +
+      '<p class="mon-note">“Sedang main” berarti siswa melakukan sesuatu dalam 3 menit terakhir. Data ini diperbarui otomatis.</p>' +
+      '<div class="actions"><button class="btn" type="button" id="wipe">Hapus semua data siswa</button></div>' +
+      '<div class="confirm" id="wipeAsk" hidden><p>Hapus data semua siswa dari pantauan? Siswa yang sedang bermain akan muncul lagi saat mereka bergerak. Tindakan ini tidak bisa dibatalkan.</p>' +
+        '<div class="actions"><button class="btn danger" type="button" id="wipeYes">Ya, hapus semua</button><button class="btn" type="button" id="wipeNo">Batal</button></div></div>'
+    );
+    document.getElementById('lock').addEventListener('click', function () { setUnlocked(false); leaveMonitor(); });
+    document.getElementById('kelasFilter').addEventListener('change', function (e) { monKelas = e.target.value; paintMonitor(); });
+    var wipe = document.getElementById('wipe'), ask = document.getElementById('wipeAsk');
+    wipe.addEventListener('click', function () { ask.hidden = false; wipe.hidden = true; });
+    document.getElementById('wipeNo').addEventListener('click', function () { ask.hidden = true; wipe.hidden = false; });
+    document.getElementById('wipeYes').addEventListener('click', async function () {
+      this.disabled = true;
+      var ids = monDocs.map(function (d) { return d.id; });
+      for (var i = 0; i < ids.length; i++) {
+        try { await DB.collection('sesi').doc(ids[i]).delete(); } catch (e) {}
+      }
+      ask.hidden = true; wipe.hidden = false; this.disabled = false;
+    });
+    monUnsub = DB.collection('sesi').orderBy('aktif', 'desc').limit(500).onSnapshot(function (snap) {
+      monDocs = snap.docs.map(function (x) { var d = Object.assign({}, x.data()); d.id = x.id; return d; });
+      paintMonitor();
+    }, function () {
+      var t = document.getElementById('monTable');
+      if (t) t.innerHTML = '<p class="mon-note" style="padding:12px">Sambungan ke data siswa terputus. Muat ulang halaman untuk menyambung lagi.</p>';
+    });
+    monTimer = setInterval(paintMonitor, 30000);
+  }
+  function paintMonitor() {
+    var table = document.getElementById('monTable');
+    if (!table) { stopMonitor(); return; }
+    var kelasList = [];
+    monDocs.forEach(function (d) { if (d.kelas && kelasList.indexOf(d.kelas) < 0) kelasList.push(d.kelas); });
+    kelasList.sort();
+    if (monKelas && kelasList.indexOf(monKelas) < 0) monKelas = '';
+    document.getElementById('kelasFilter').innerHTML = '<option value="">Semua kelas</option>' +
+      kelasList.map(function (k) { return '<option value="' + esc(k) + '"' + (k === monKelas ? ' selected' : '') + '>' + esc(k) + '</option>'; }).join('');
+    var rows = monDocs.filter(function (d) { return !monKelas || d.kelas === monKelas; });
+    var live = 0, done = 0;
+    rows.forEach(function (d) { var st = stateOf(d); if (st.c === 'live') live++; if (d.status === 'selesai') done++; });
+    document.getElementById('tiles').innerHTML =
+      '<div class="tilestat live"><b>' + live + '</b><span>sedang bermain</span></div>' +
+      '<div class="tilestat done"><b>' + done + '</b><span>selesai keempat pulau</span></div>' +
+      '<div class="tilestat"><b>' + rows.length + '</b><span>siswa sudah masuk</span></div>';
+    if (!rows.length) {
+      table.innerHTML = '<p class="mon-note" style="padding:12px">Belum ada siswa yang masuk' + (monKelas ? ' dari kelas ' + esc(monKelas) : '') +
+        '. Nama siswa muncul di sini begitu mereka menulis nama dan menekan <b>Masuk dan mulai</b>.</p>';
+      return;
+    }
+    table.innerHTML = '<table><thead><tr><th>Nama</th><th>Kelas</th><th>Sedang di</th><th>Bintang</th><th>Salah</th><th>Status</th><th>Terakhir aktif</th></tr></thead><tbody>' +
+      rows.map(function (d) {
+        var st = stateOf(d), b = d.bintang || {};
+        var per = PILAR.map(function (p) { return p.name.charAt(0) + ':' + (b[p.id] || 0); }).join(' ');
+        return '<tr><td><b>' + esc(d.nama || '?') + '</b></td><td>' + esc(d.kelas || '–') + '</td><td>' + esc(d.lokasi || '') + '</td>' +
+          '<td title="' + esc(per) + '">' + (d.total || 0) + ' / 12</td><td>' + (d.salah || 0) + '</td>' +
+          '<td><span class="pill ' + st.c + '">' + st.t + '</span></td><td>' + (d.aktif ? agoText(d.aktif) : '–') + '</td></tr>';
+      }).join('') + '</tbody></table>';
+  }
+
+  if (location.hash === '#guru') showMonitor();
+  else if (player) showHome();
+  else showLogin();
 })();
 </script>
 </body>

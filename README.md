@@ -13,9 +13,12 @@ Siswa membantu Kompi si robot menjelajahi empat pulau, satu pulau untuk setiap p
 Setiap pulau memberi 1–3 bintang (3 = tanpa salah, 2 = salah 1–2 kali, 1 = lebih dari itu).
 Bintang disimpan di browser perangkat masing-masing.
 
-Setelah keempat pulau selesai, siswa **menulis nama dan kelas**, lalu mendapat **piagam** berisi nama dan bintangnya.
-Tombol **Pemain baru** di halaman piagam mengosongkan bintang supaya siswa berikutnya bisa mulai dari nol di komputer yang sama.
-Nama-nama yang sudah selesai tercatat di **Catatan untuk Guru → Daftar pemain di perangkat ini**.
+## Masuk dan Pantauan Guru
+
+- Sebelum bermain, siswa **masuk** dengan menulis nama dan kelas. Setelah selesai, siswa menekan **Keluar** supaya teman berikutnya mulai dari nol di komputer yang sama.
+- Setelah keempat pulau selesai, siswa mendapat **piagam** berisi nama dan bintangnya.
+- Tombol **Pantauan Guru** (paling bawah halaman) menampilkan siapa yang sedang bermain, pulau dan soal yang sedang dikerjakan, jumlah salah, bintang, dan kapan terakhir aktif. Halaman ini diperbarui otomatis dan dikunci dengan PIN guru (dibuat saat pertama kali dibuka).
+- Pantauan langsung hanya berjalan saat game dibuka lewat link claude.ai dengan akun yang boleh menyimpan data. Kalau `index.html` dibuka langsung dari komputer, game tetap bisa dimainkan dan daftar siswa yang pernah masuk bisa dilihat di **Catatan untuk Guru → Daftar pemain di perangkat ini**.
 
 ## Cara memakai
 
