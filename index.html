@@ -1,0 +1,850 @@
+<!doctype html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Petualangan Kompi</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;800&family=Nunito:wght@400;700;800&display=swap">
+<style>
+/* Layout: buku petak (graph-paper exercise book) as the ground; one centered column; crayon-colored islands. */
+:root {
+  --paper: #FBFCF7;
+  --grid: #DDE7F0;
+  --ink: #1D2742;
+  --muted: #56627E;
+  --card: #FFFFFF;
+  --line: #C8D3E3;
+  --red: #E4572E;
+  --yellow: #E9A800;
+  --green: #2A9A55;
+  --blue: #2B78CC;
+  --red-soft: #FCE4DB;
+  --yellow-soft: #FDF0C4;
+  --green-soft: #D7EFDF;
+  --blue-soft: #DBE9F8;
+  --on-color: #FFFFFF;
+  --rock: #8A93A6;
+  --font-display: "Baloo 2", "Comic Sans MS", "Trebuchet MS", system-ui, sans-serif;
+  --font-body: "Nunito", "Segoe UI", system-ui, -apple-system, sans-serif;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --paper: #142036; --grid: #1E2C47; --ink: #EEF2F9; --muted: #A9B4CA; --card: #1C2943; --line: #334463;
+    --red: #FF7C57; --yellow: #FFD23F; --green: #4FCB7E; --blue: #62A8F2;
+    --red-soft: #3E2626; --yellow-soft: #3B3420; --green-soft: #1E3A2C; --blue-soft: #1E3253;
+    --on-color: #14203A; --rock: #7C879E;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --paper: #142036; --grid: #1E2C47; --ink: #EEF2F9; --muted: #A9B4CA; --card: #1C2943; --line: #334463;
+  --red: #FF7C57; --yellow: #FFD23F; --green: #4FCB7E; --blue: #62A8F2;
+  --red-soft: #3E2626; --yellow-soft: #3B3420; --green-soft: #1E3A2C; --blue-soft: #1E3253;
+  --on-color: #14203A; --rock: #7C879E;
+  color-scheme: dark;
+}
+
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  background-color: var(--paper);
+  background-image:
+    linear-gradient(var(--grid) 1px, transparent 1px),
+    linear-gradient(90deg, var(--grid) 1px, transparent 1px);
+  background-size: 24px 24px;
+  color: var(--ink);
+  font-family: var(--font-body);
+  font-size: 17px;
+  line-height: 1.5;
+}
+.wrap { max-width: 900px; margin: 0 auto; padding-inline: 16px; padding-block: 20px 48px; }
+h1, h2, h3 { font-family: var(--font-display); line-height: 1.1; margin: 0; text-wrap: balance; }
+p { margin: 0; }
+button { font: inherit; color: inherit; cursor: pointer; }
+button:focus-visible, summary:focus-visible { outline: 3px solid var(--blue); outline-offset: 3px; }
+.eyebrow { font-size: 13px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
+
+/* sound toggle */
+.sound { position: fixed; right: 12px; top: calc(env(safe-area-inset-top, 0px) + 12px); z-index: 5;
+  border: 2px solid var(--line); background: var(--card); border-radius: 999px; padding: 4px 12px; font-size: 14px; font-weight: 700; }
+
+/* home */
+.hero { display: grid; grid-template-columns: auto 1fr; gap: 20px; align-items: center; padding-block: 28px 24px; }
+.hero .mascot { width: 112px; animation: bob 3s ease-in-out infinite; }
+.hero h1 { font-size: clamp(38px, 7vw, 60px); font-weight: 800; color: var(--blue); }
+.hero .lead { max-width: 56ch; margin-top: 6px; color: var(--ink); }
+.total { grid-column: 1 / -1; display: flex; align-items: center; gap: 8px; font-weight: 800; }
+.total svg { width: 26px; }
+.total .bar { flex: 1; max-width: 260px; height: 12px; border-radius: 99px; background: var(--card); border: 2px solid var(--line); overflow: hidden; }
+.total .bar i { display: block; height: 100%; background: var(--yellow); }
+
+.islands { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
+.island {
+  text-align: left; border: 3px solid var(--c); background: var(--card); border-radius: 18px;
+  padding: 18px; display: grid; gap: 8px; box-shadow: 0 5px 0 var(--c); transition: transform .15s;
+}
+.island:hover { transform: translateY(-3px); }
+.island:active { transform: translateY(2px); box-shadow: 0 2px 0 var(--c); }
+.island .tag { justify-self: start; background: var(--c-soft); color: var(--ink); border-radius: 999px; padding: 2px 12px; font-size: 13px; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; }
+.island h2 { font-size: 28px; color: var(--c); }
+.island .ex { font-size: 15px; color: var(--muted); }
+.island .foot { display: flex; justify-content: space-between; align-items: center; margin-top: 4px; }
+.stars { display: inline-flex; gap: 2px; }
+.stars svg { width: 24px; }
+.go { font-family: var(--font-display); font-weight: 800; font-size: 18px; background: var(--c); color: var(--on-color); padding: 4px 14px; border-radius: 12px; }
+
+.teacher { margin-top: 28px; background: var(--card); border: 2px solid var(--line); border-radius: 16px; padding: 4px 18px; }
+.teacher summary { font-family: var(--font-display); font-weight: 800; font-size: 20px; padding-block: 12px; cursor: pointer; }
+.teacher .body { display: grid; gap: 12px; padding-bottom: 16px; }
+.teacher .body p, .teacher li { max-width: 70ch; }
+.teacher ul { margin: 0; padding-left: 20px; }
+.tbl { overflow-x: auto; }
+.tbl table { border-collapse: collapse; width: 100%; min-width: 560px; font-size: 15px; }
+.tbl th, .tbl td { text-align: left; vertical-align: top; padding: 8px 10px; border-bottom: 1px solid var(--line); }
+.tbl th { font-size: 13px; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); }
+
+/* stage */
+.topbar { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; padding-block: 8px 16px; padding-right: 110px; }
+.back { border: 2px solid var(--line); background: var(--card); border-radius: 12px; padding: 6px 14px; font-weight: 800; }
+.stage-title { display: grid; line-height: 1.15; }
+.stage-title small { font-size: 12px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
+.stage-title b { font-family: var(--font-display); font-size: 24px; color: var(--c); }
+.dots { display: flex; gap: 6px; margin-left: auto; }
+.dots span { width: 14px; height: 14px; border-radius: 50%; border: 2px solid var(--c); background: var(--card); }
+.dots span.done { background: var(--c); }
+.dots span.now { box-shadow: 0 0 0 3px var(--c-soft); }
+
+.card { background: var(--card); border: 3px solid var(--c); border-radius: 20px; padding: 22px; display: grid; gap: 16px; }
+.task { font-size: clamp(26px, 5vw, 36px); color: var(--ink); }
+.prompt { font-weight: 700; }
+.story { background: var(--c-soft); border-radius: 14px; padding: 14px 16px; font-size: 18px; max-width: 62ch; }
+
+.chips { display: flex; flex-wrap: wrap; gap: 10px; }
+.chip { border: 2px solid var(--line); background: var(--card); border-radius: 14px; padding: 10px 16px; font-weight: 700; text-align: left; transition: transform .1s; }
+.chip[aria-pressed="true"] { border-color: var(--c); background: var(--c-soft); }
+.chip[aria-pressed="true"]::before { content: "✓ "; color: var(--c); font-weight: 800; }
+.chip.ok { border-color: var(--green); background: var(--green-soft); }
+.chip.no { border-color: var(--red); background: var(--red-soft); }
+.chip:disabled { cursor: default; }
+
+.actions { display: flex; flex-wrap: wrap; gap: 10px; }
+.btn { border: 0; border-radius: 14px; padding: 10px 20px; font-family: var(--font-display); font-weight: 800; font-size: 19px; background: var(--card); border: 2px solid var(--line); }
+.btn.primary { background: var(--c); border-color: var(--c); color: var(--on-color); box-shadow: 0 4px 0 var(--ink); }
+.btn.primary:active { transform: translateY(2px); box-shadow: 0 2px 0 var(--ink); }
+.btn:disabled { opacity: .5; cursor: not-allowed; }
+
+.tree { display: grid; justify-items: center; gap: 0; padding-block: 4px; }
+.tree .root { background: var(--c); color: var(--on-color); font-family: var(--font-display); font-weight: 800; font-size: 20px; padding: 6px 18px; border-radius: 12px; }
+.tree .stem { width: 3px; height: 16px; background: var(--c); }
+.tree .branches { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; border-top: 3px solid var(--c); padding-top: 12px; }
+.tree .branches span { background: var(--c-soft); border-radius: 10px; padding: 6px 12px; font-weight: 700; font-size: 15px; }
+
+.seq { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+.tile { width: 64px; height: 64px; border-radius: 14px; border: 2px solid var(--line); background: var(--card); display: grid; place-items: center; font-family: var(--font-display); font-weight: 800; font-size: 28px; color: var(--ink); }
+.tile svg { width: 44px; height: 44px; }
+.tile.q { border: 3px dashed var(--c); background: var(--c-soft); color: var(--c); }
+.tile.q.filled { border-style: solid; }
+.choices { display: flex; flex-wrap: wrap; gap: 12px; }
+.choices .tile { width: 76px; height: 76px; box-shadow: 0 4px 0 var(--line); }
+.choices .tile:active { transform: translateY(2px); box-shadow: 0 2px 0 var(--line); }
+.choices .tile.no { border-color: var(--red); background: var(--red-soft); }
+
+/* algorithm */
+.algo { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 20px; align-items: start; }
+.board { position: relative; width: 100%; max-width: 380px; aspect-ratio: 1; display: grid; grid-template-columns: repeat(5, 1fr); grid-template-rows: repeat(5, 1fr);
+  border: 3px solid var(--ink); border-radius: 12px; overflow: hidden; background: var(--green-soft); }
+.cell { border-right: 1px dashed var(--line); border-bottom: 1px dashed var(--line); display: grid; place-items: center; }
+.cell svg { width: 70%; height: 70%; }
+.cell.gone svg { opacity: 0; transition: opacity .3s; }
+.bot { position: absolute; width: 20%; height: 20%; display: grid; place-items: center; transition: left .35s ease, top .35s ease; }
+.bot svg { width: 82%; height: 82%; }
+.bot.bonk { animation: bonk .4s; }
+.bot.win { animation: hop .5s 2; }
+.panel { display: grid; gap: 10px; min-width: 0; }
+.label { font-weight: 800; font-size: 14px; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); display: flex; justify-content: space-between; }
+.cmds { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; }
+.cmd { border: 2px solid var(--c); background: var(--c-soft); border-radius: 12px; padding: 6px 4px; display: grid; justify-items: center; font-size: 13px; font-weight: 800; color: var(--ink); }
+.cmd svg { width: 30px; height: 30px; color: var(--c); }
+.program { list-style: none; margin: 0; padding: 8px; min-height: 64px; border: 2px dashed var(--line); border-radius: 12px; display: flex; flex-wrap: wrap; gap: 6px; align-content: flex-start; counter-reset: s; }
+.program li button { border: 2px solid var(--line); background: var(--card); border-radius: 10px; width: 46px; height: 46px; display: grid; place-items: center; position: relative; padding: 0; }
+.program li button::after { counter-increment: s; content: counter(s); position: absolute; top: -8px; left: -6px; font-size: 11px; font-weight: 800; background: var(--ink); color: var(--paper); border-radius: 99px; min-width: 18px; padding: 0 4px; }
+.program li button svg { width: 26px; height: 26px; color: var(--blue); }
+.program li.active button { border-color: var(--yellow); background: var(--yellow-soft); }
+.program li.bad button { border-color: var(--red); background: var(--red-soft); }
+.program .empty { color: var(--muted); font-size: 15px; padding: 6px; }
+
+/* Kompi speech */
+.say { display: grid; grid-template-columns: 64px 1fr; gap: 12px; align-items: center; margin-top: 16px; }
+.say .mini { width: 64px; }
+.bubble { position: relative; background: var(--card); border: 2px solid var(--line); border-radius: 16px; padding: 12px 16px; font-weight: 700; min-height: 52px; }
+.bubble::before { content: ""; position: absolute; left: -9px; top: 18px; width: 14px; height: 14px; background: var(--card); border-left: 2px solid var(--line); border-bottom: 2px solid var(--line); transform: rotate(45deg); }
+.bubble.good { border-color: var(--green); }
+.bubble.good::before { border-color: var(--green); }
+.bubble.oops { border-color: var(--red); }
+.bubble.oops::before { border-color: var(--red); }
+
+.finish { justify-items: center; text-align: center; padding-block: 32px; }
+.finish .mascot { width: 120px; animation: hop .6s 3; }
+.finish .stars svg { width: 54px; }
+.finish p { max-width: 52ch; }
+
+.shake { animation: shake .35s; }
+@keyframes shake { 25% { transform: translateX(-6px); } 75% { transform: translateX(6px); } }
+@keyframes bob { 50% { transform: translateY(-6px); } }
+@keyframes hop { 50% { transform: translateY(-14px); } }
+@keyframes bonk { 30% { transform: rotate(-12deg); } 60% { transform: rotate(10deg); } }
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation: none !important; transition: none !important; }
+}
+
+@media (max-width: 680px) {
+  .islands { grid-template-columns: minmax(0, 1fr); }
+  .algo { grid-template-columns: minmax(0, 1fr); }
+  .board { margin-inline: auto; }
+  .hero { grid-template-columns: 72px 1fr; gap: 14px; }
+  .hero .mascot { width: 72px; }
+  .card { padding: 16px; }
+  .tile { width: 52px; height: 52px; font-size: 22px; }
+  .tile svg { width: 36px; height: 36px; }
+  .topbar { padding-right: 0; padding-top: 44px; }
+}
+</style>
+</head>
+<body>
+<button class="sound" id="sound" type="button" aria-pressed="true">Suara: nyala</button>
+<main class="wrap" id="app"></main>
+
+<script>
+(function () {
+  "use strict";
+
+  /* ---------- gambar ---------- */
+  function robot() {
+    return '<svg viewBox="0 0 64 64" aria-hidden="true">' +
+      '<line x1="32" y1="6" x2="32" y2="15" stroke="currentColor" style="color:var(--ink)" stroke-width="3" stroke-linecap="round"/>' +
+      '<circle cx="32" cy="6" r="4.5" style="fill:var(--red)"/>' +
+      '<rect x="9" y="15" width="46" height="34" rx="11" style="fill:var(--blue)"/>' +
+      '<rect x="16" y="22" width="32" height="17" rx="7" style="fill:var(--card)"/>' +
+      '<circle cx="25" cy="30.5" r="3.6" style="fill:var(--ink)"/>' +
+      '<circle cx="39" cy="30.5" r="3.6" style="fill:var(--ink)"/>' +
+      '<rect x="25" y="42" width="14" height="3" rx="1.5" style="fill:var(--yellow)"/>' +
+      '<rect x="18" y="51" width="9" height="10" rx="3" style="fill:var(--ink)"/>' +
+      '<rect x="37" y="51" width="9" height="10" rx="3" style="fill:var(--ink)"/></svg>';
+  }
+  function star(on) {
+    return '<svg viewBox="0 0 24 24" aria-hidden="true"><polygon points="12,2 15,8.8 22.4,9.5 16.8,14.4 18.5,21.6 12,17.8 5.5,21.6 7.2,14.4 1.6,9.5 9,8.8" style="fill:' +
+      (on ? 'var(--yellow)' : 'var(--line)') + '"/></svg>';
+  }
+  function stars(n, total) {
+    var s = '';
+    for (var i = 0; i < (total || 3); i++) s += star(i < n);
+    return '<span class="stars" role="img" aria-label="' + n + ' dari ' + (total || 3) + ' bintang">' + s + '</span>';
+  }
+  function rock() {
+    return '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 18 L6 10 L11 5 L17 7 L21 13 L19 19 Z" style="fill:var(--rock)"/><path d="M11 5 L12 11 L21 13" fill="none" stroke="currentColor" style="color:var(--paper)" stroke-width="1.2" opacity=".6"/></svg>';
+  }
+  function gem() {
+    return '<svg viewBox="0 0 24 24" aria-hidden="true"><polygon points="6,4 18,4 22,10 12,21 2,10" style="fill:var(--red)"/><polygon points="6,4 18,4 15,10 9,10" style="fill:var(--yellow)" opacity=".7"/></svg>';
+  }
+  function arrow(deg) {
+    return '<svg viewBox="0 0 24 24" aria-hidden="true" style="transform:rotate(' + deg + 'deg)"><path d="M12 2 L21 12 H15.5 V22 H8.5 V12 H3 Z" fill="currentColor"/></svg>';
+  }
+  function shape(s, c) {
+    var f = 'style="fill:var(--' + c + ')"';
+    if (s === 'circle') return '<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10" ' + f + '/></svg>';
+    if (s === 'square') return '<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="3" ' + f + '/></svg>';
+    if (s === 'triangle') return '<svg viewBox="0 0 24 24" aria-hidden="true"><polygon points="12,2 23,21 1,21" ' + f + '/></svg>';
+    return '';
+  }
+  var COLOR_NAME = { red: 'merah', blue: 'biru', yellow: 'kuning', green: 'hijau' };
+  var SHAPE_NAME = { circle: 'lingkaran', square: 'persegi', triangle: 'segitiga' };
+  var DIR_NAME = { 0: 'atas', 90: 'kanan', 180: 'bawah', 270: 'kiri' };
+  function itemHTML(it) {
+    if (it.n !== undefined) return String(it.n);
+    if (it.a !== undefined) return '<span style="color:var(--blue);display:grid">' + arrow(it.a) + '</span>';
+    return shape(it.s, it.c);
+  }
+  function itemLabel(it) {
+    if (it.n !== undefined) return 'angka ' + it.n;
+    if (it.a !== undefined) return 'panah ke ' + DIR_NAME[it.a];
+    return SHAPE_NAME[it.s] + ' ' + COLOR_NAME[it.c];
+  }
+  function same(a, b) { return JSON.stringify(a) === JSON.stringify(b); }
+
+  /* ---------- isi permainan ---------- */
+  var PILAR = [
+    {
+      id: 'dekomposisi', name: 'Dekomposisi', c: 'red',
+      desc: 'Memecah masalah besar menjadi bagian-bagian kecil.',
+      ex: 'Contoh: membuat nasi goreng dipecah jadi menyiapkan bahan, menggoreng, menyajikan.',
+      lesson: 'Masalah besar terasa mudah kalau dipecah menjadi bagian kecil yang bisa dikerjakan satu per satu.',
+      type: 'pick',
+      rounds: [
+        {
+          task: 'Membuat Nasi Goreng', tree: true,
+          prompt: 'Pilih semua bagian kecil yang termasuk tugas ini.',
+          options: [
+            { t: 'Menyiapkan nasi dan bumbu', ok: true },
+            { t: 'Memanaskan wajan', ok: true },
+            { t: 'Menggoreng dan mengaduk nasi', ok: true },
+            { t: 'Menyajikan di piring', ok: true },
+            { t: 'Bermain layang-layang', ok: false, why: 'Bermain layang-layang tidak membantu membuat nasi goreng.' },
+            { t: 'Mengerjakan PR matematika', ok: false, why: 'PR matematika itu tugas lain, bukan bagian dari memasak.' }
+          ],
+          win: 'Hebat! Satu tugas besar jadi empat langkah kecil yang mudah dikerjakan.'
+        },
+        {
+          task: 'Bersiap ke Sekolah', tree: true,
+          prompt: 'Pilih semua bagian kecil yang termasuk tugas ini.',
+          options: [
+            { t: 'Mandi', ok: true },
+            { t: 'Memakai seragam', ok: true },
+            { t: 'Sarapan', ok: true },
+            { t: 'Memasukkan buku ke tas', ok: true },
+            { t: 'Tidur lagi', ok: false, why: 'Tidur lagi malah membuat kamu terlambat ke sekolah.' },
+            { t: 'Menonton kartun sampai siang', ok: false, why: 'Menonton kartun sampai siang tidak membantu bersiap ke sekolah.' }
+          ],
+          win: 'Betul! Kalau dipecah, kamu tahu apa saja yang harus dikerjakan pagi hari.'
+        },
+        {
+          task: 'Membersihkan Kelas', tree: true,
+          prompt: 'Kelasmu dapat giliran piket. Pilih semua bagian tugasnya.',
+          options: [
+            { t: 'Menyapu lantai', ok: true },
+            { t: 'Menghapus papan tulis', ok: true },
+            { t: 'Merapikan meja dan kursi', ok: true },
+            { t: 'Membuang sampah', ok: true },
+            { t: 'Menyiram tanaman kelas', ok: true },
+            { t: 'Mencoret-coret dinding', ok: false, why: 'Mencoret dinding justru membuat kelas kotor.' },
+            { t: 'Makan jajan di kelas', ok: false, why: 'Makan jajan bukan bagian dari tugas piket.' }
+          ],
+          win: 'Keren! Tugas piket bisa dibagi ke beberapa teman, satu orang satu bagian.'
+        }
+      ]
+    },
+    {
+      id: 'pola', name: 'Pengenalan Pola', c: 'yellow',
+      desc: 'Menemukan hal yang sama atau berulang.',
+      ex: 'Contoh: merah, biru, merah, biru... berikutnya pasti merah.',
+      lesson: 'Kalau kita menemukan pola, kita bisa menebak apa yang terjadi berikutnya tanpa mencoba satu per satu.',
+      type: 'pattern',
+      rounds: [
+        { seq: [{ s: 'circle', c: 'red' }, { s: 'circle', c: 'blue' }, { s: 'circle', c: 'red' }, { s: 'circle', c: 'blue' }, { s: 'circle', c: 'red' }],
+          ans: { s: 'circle', c: 'blue' }, alt: [{ s: 'circle', c: 'red' }, { s: 'circle', c: 'yellow' }],
+          why: 'Polanya merah, biru, merah, biru. Setelah merah selalu biru.' },
+        { seq: [{ s: 'square', c: 'yellow' }, { s: 'square', c: 'yellow' }, { s: 'triangle', c: 'green' }, { s: 'square', c: 'yellow' }, { s: 'square', c: 'yellow' }],
+          ans: { s: 'triangle', c: 'green' }, alt: [{ s: 'square', c: 'yellow' }, { s: 'circle', c: 'green' }],
+          why: 'Polanya dua persegi kuning, lalu satu segitiga hijau.' },
+        { seq: [{ n: 2 }, { n: 4 }, { n: 6 }, { n: 8 }],
+          ans: { n: 10 }, alt: [{ n: 9 }, { n: 12 }],
+          why: 'Setiap angka bertambah 2. Jadi 8 + 2 = 10.' },
+        { seq: [{ a: 0 }, { a: 90 }, { a: 180 }, { a: 270 }, { a: 0 }, { a: 90 }],
+          ans: { a: 180 }, alt: [{ a: 0 }, { a: 270 }],
+          why: 'Panahnya berputar searah jarum jam: atas, kanan, bawah, kiri.' },
+        { seq: [{ s: 'triangle', c: 'red' }, { s: 'square', c: 'blue' }, { s: 'circle', c: 'yellow' }, { s: 'triangle', c: 'red' }, { s: 'square', c: 'blue' }],
+          ans: { s: 'circle', c: 'yellow' }, alt: [{ s: 'triangle', c: 'red' }, { s: 'circle', c: 'blue' }],
+          why: 'Ada tiga benda yang berulang: segitiga merah, persegi biru, lingkaran kuning.' },
+        { seq: [{ n: 5 }, { n: 10 }, { n: 15 }, { n: 20 }],
+          ans: { n: 25 }, alt: [{ n: 21 }, { n: 30 }],
+          why: 'Setiap angka bertambah 5, seperti menghitung jari dua tangan.' }
+      ]
+    },
+    {
+      id: 'abstraksi', name: 'Abstraksi', c: 'green',
+      desc: 'Memilih informasi yang penting saja.',
+      ex: 'Contoh: untuk menghitung kelereng, warna baju tidak penting.',
+      lesson: 'Abstraksi membantu kita fokus. Informasi yang tidak dibutuhkan boleh diabaikan.',
+      type: 'pick',
+      rounds: [
+        {
+          task: 'Kelereng Rina',
+          story: 'Rina memakai baju biru. Ia punya 5 kelereng. Hari itu cuacanya cerah. Ibu memberi Rina 3 kelereng lagi. Berapa kelereng Rina sekarang?',
+          prompt: 'Pilih informasi yang penting untuk menjawab pertanyaan.',
+          options: [
+            { t: 'Rina punya 5 kelereng', ok: true },
+            { t: 'Ibu memberi 3 kelereng', ok: true },
+            { t: 'Rina memakai baju biru', ok: false, why: 'Warna baju tidak mengubah jumlah kelereng.' },
+            { t: 'Cuacanya cerah', ok: false, why: 'Cuaca tidak dibutuhkan untuk menghitung kelereng.' }
+          ],
+          win: 'Tepat! Cukup 5 + 3 = 8 kelereng. Info lainnya boleh diabaikan.'
+        },
+        {
+          task: 'Peta ke Rumah Budi',
+          story: 'Kamu mau menggambar peta supaya teman-teman bisa datang ke rumah Budi.',
+          prompt: 'Apa saja yang perlu ada di peta?',
+          options: [
+            { t: 'Jalan yang dilewati', ok: true },
+            { t: 'Tempat berbelok', ok: true },
+            { t: 'Rumah Budi', ok: true },
+            { t: 'Nama jalan', ok: true },
+            { t: 'Jumlah daun di pohon', ok: false, why: 'Jumlah daun tidak membantu orang menemukan jalan.' },
+            { t: 'Warna mobil yang lewat', ok: false, why: 'Mobil yang lewat selalu berganti, jadi tidak perlu digambar.' }
+          ],
+          win: 'Bagus! Peta yang baik hanya berisi hal penting, jadi mudah dibaca.'
+        },
+        {
+          task: 'Mengenali Kucing',
+          story: 'Kompi belajar membedakan kucing dari hewan lain.',
+          prompt: 'Ciri mana yang dimiliki semua kucing?',
+          options: [
+            { t: 'Berkumis', ok: true },
+            { t: 'Bersuara meong', ok: true },
+            { t: 'Berbulu', ok: true },
+            { t: 'Bernama Si Belang', ok: false, why: 'Tidak semua kucing bernama Si Belang. Itu ciri satu kucing saja.' },
+            { t: 'Suka tidur di sofa', ok: false, why: 'Ada kucing yang tidak pernah tidur di sofa.' },
+            { t: 'Berwarna oranye', ok: false, why: 'Kucing bisa berwarna hitam, putih, abu-abu, dan lainnya.' }
+          ],
+          win: 'Pintar! Ciri umum membantu Kompi mengenali kucing apa pun.'
+        }
+      ]
+    },
+    {
+      id: 'algoritma', name: 'Algoritma', c: 'blue',
+      desc: 'Menyusun langkah-langkah yang urut dan jelas.',
+      ex: 'Contoh: maju, maju, belok kanan, maju sampai ke bintang.',
+      lesson: 'Algoritma adalah urutan langkah yang jelas. Kalau salah, kita cari langkah yang keliru lalu perbaiki (debugging).',
+      type: 'algo',
+      rounds: [
+        { title: 'Bawa Kompi ke bintang', start: [2, 0], goal: [2, 4], rocks: [], max: 8 },
+        { title: 'Hati-hati, ada batu!', start: [4, 0], goal: [0, 4], rocks: [[1, 1], [2, 2], [3, 3], [4, 2]], max: 12 },
+        { title: 'Cari jalan berkelok', start: [0, 0], goal: [4, 4], rocks: [[0, 2], [1, 2], [2, 2], [4, 1], [3, 3], [2, 4]], max: 12 },
+        { title: 'Ambil permata dulu, baru ke bintang', start: [4, 4], goal: [0, 0], gem: [0, 4], rocks: [[1, 1], [1, 2], [2, 2], [3, 1], [3, 2], [2, 0]], max: 12 }
+      ]
+    }
+  ];
+  var DIRS = { up: { a: 0, dr: -1, dc: 0, t: 'Atas' }, right: { a: 90, dr: 0, dc: 1, t: 'Kanan' }, down: { a: 180, dr: 1, dc: 0, t: 'Bawah' }, left: { a: 270, dr: 0, dc: -1, t: 'Kiri' } };
+
+  /* ---------- simpanan & suara ---------- */
+  var KEY = 'petualangan-kompi-bintang';
+  var best = {};
+  try { best = JSON.parse(localStorage.getItem(KEY) || '{}') || {}; } catch (e) { best = {}; }
+  function save() { try { localStorage.setItem(KEY, JSON.stringify(best)); } catch (e) {} }
+
+  var soundOn = true, actx = null;
+  try { soundOn = localStorage.getItem(KEY + '-suara') !== 'mati'; } catch (e) {}
+  var soundBtn = document.getElementById('sound');
+  function paintSound() { soundBtn.textContent = 'Suara: ' + (soundOn ? 'nyala' : 'mati'); soundBtn.setAttribute('aria-pressed', String(soundOn)); }
+  soundBtn.addEventListener('click', function () {
+    soundOn = !soundOn; paintSound();
+    try { localStorage.setItem(KEY + '-suara', soundOn ? 'nyala' : 'mati'); } catch (e) {}
+  });
+  paintSound();
+  function tone(freqs, gap) {
+    if (!soundOn) return;
+    try {
+      actx = actx || new (window.AudioContext || window.webkitAudioContext)();
+      var t = actx.currentTime;
+      freqs.forEach(function (f, i) {
+        var o = actx.createOscillator(), g = actx.createGain(), s = t + i * (gap || 0.12);
+        o.type = 'triangle'; o.frequency.value = f;
+        g.gain.setValueAtTime(0.0001, s);
+        g.gain.exponentialRampToValueAtTime(0.18, s + 0.02);
+        g.gain.exponentialRampToValueAtTime(0.0001, s + 0.22);
+        o.connect(g); g.connect(actx.destination);
+        o.start(s); o.stop(s + 0.25);
+      });
+    } catch (e) {}
+  }
+  function good() { tone([523, 659, 784]); }
+  function bad() { tone([260, 196], 0.15); }
+  function blip() { tone([660]); }
+
+  /* ---------- alat bantu ---------- */
+  var app = document.getElementById('app');
+  function shuffle(a) { a = a.slice(); for (var i = a.length - 1; i > 0; i--) { var j = Math.floor(Math.random() * (i + 1)); var t = a[i]; a[i] = a[j]; a[j] = t; } return a; }
+  function esc(s) { return String(s).replace(/[&<>"]/g, function (ch) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[ch]; }); }
+  function sleep(ms) { return new Promise(function (r) { setTimeout(r, ms); }); }
+  function shake(el) { el.classList.remove('shake'); void el.offsetWidth; el.classList.add('shake'); }
+  function colorVars(c) { return '--c:var(--' + c + ');--c-soft:var(--' + c + '-soft)'; }
+  function starsFor(m) { return m === 0 ? 3 : m <= 2 ? 2 : 1; }
+
+  /* ---------- peta pulau ---------- */
+  function showHome() {
+    var total = 0;
+    PILAR.forEach(function (p) { total += best[p.id] || 0; });
+    var cards = PILAR.map(function (p, i) {
+      var got = best[p.id] || 0;
+      return '<button class="island" type="button" data-id="' + p.id + '" style="' + colorVars(p.c) + '">' +
+        '<span class="tag">Pulau ' + (i + 1) + '</span>' +
+        '<h2>' + p.name + '</h2>' +
+        '<p>' + p.desc + '</p>' +
+        '<p class="ex">' + p.ex + '</p>' +
+        '<span class="foot">' + stars(got) + '<span class="go">' + (got ? 'Main lagi' : 'Main') + ' ›</span></span>' +
+        '</button>';
+    }).join('');
+
+    app.innerHTML =
+      '<header class="hero">' +
+        '<div class="mascot">' + robot() + '</div>' +
+        '<div><p class="eyebrow">Berpikir Komputasional · SD</p>' +
+        '<h1>Petualangan Kompi</h1>' +
+        '<p class="lead">Kompi si robot mau menjelajah empat pulau. Setiap pulau punya tantangan berpikir. Bantu Kompi mengumpulkan semua bintang!</p></div>' +
+        '<div class="total">' + star(true) + '<span>' + total + ' dari 12 bintang</span><span class="bar" aria-hidden="true"><i style="width:' + (total / 12 * 100) + '%"></i></span></div>' +
+      '</header>' +
+      '<section class="islands" aria-label="Pilih pulau">' + cards + '</section>' +
+      teacherNotes();
+
+    app.querySelectorAll('.island').forEach(function (b) {
+      b.addEventListener('click', function () { blip(); startStage(b.getAttribute('data-id')); });
+    });
+    window.scrollTo(0, 0);
+  }
+
+  function teacherNotes() {
+    return '<details class="teacher"><summary>Catatan untuk Guru</summary><div class="body">' +
+      '<p>Permainan ini mengenalkan empat pilar berpikir komputasional untuk siswa SD kelas 3 sampai 6. Setiap pulau bisa dimainkan dalam 5–10 menit, sendiri atau berpasangan.</p>' +
+      '<div class="tbl"><table><thead><tr><th>Pilar</th><th>Kegiatan di game</th><th>Pertanyaan diskusi</th></tr></thead><tbody>' +
+      '<tr><td><b>Dekomposisi</b></td><td>Memilih bagian-bagian kecil dari tugas sehari-hari (memasak, bersiap sekolah, piket).</td><td>Tugas apa di rumah yang bisa kamu pecah menjadi langkah kecil?</td></tr>' +
+      '<tr><td><b>Pengenalan Pola</b></td><td>Melanjutkan barisan bentuk, warna, angka, dan arah panah.</td><td>Pola apa yang kamu temukan di kelas, di baju, atau di lantai?</td></tr>' +
+      '<tr><td><b>Abstraksi</b></td><td>Memilih informasi penting dari cerita soal, peta, dan ciri hewan.</td><td>Informasi mana yang tidak dibutuhkan? Kenapa boleh diabaikan?</td></tr>' +
+      '<tr><td><b>Algoritma</b></td><td>Menyusun perintah arah untuk robot di papan 5×5, lalu memperbaiki program yang salah (debugging).</td><td>Apakah ada program lain yang juga berhasil? Mana yang paling pendek?</td></tr>' +
+      '</tbody></table></div>' +
+      '<ul>' +
+      '<li><b>Bintang:</b> 3 bintang jika tanpa salah, 2 bintang jika salah 1–2 kali, 1 bintang jika salah lebih dari itu. Bintang tersimpan di browser perangkat masing-masing.</li>' +
+      '<li><b>Kegiatan lanjutan tanpa komputer:</b> buat papan 5×5 dari lakban di lantai. Satu siswa menjadi “Kompi”, temannya membacakan kartu perintah Atas/Bawah/Kiri/Kanan.</li>' +
+      '<li><b>Tips:</b> minta siswa membaca program dengan suara keras sebelum menekan Jalankan, supaya mereka terbiasa menelusuri langkah.</li>' +
+      '</ul></div></details>';
+  }
+
+  /* ---------- panggung ---------- */
+  var S = null;
+  function startStage(id) {
+    var p = PILAR.filter(function (x) { return x.id === id; })[0];
+    S = { p: p, idx: PILAR.indexOf(p), i: 0, mistakes: 0, busy: false };
+    renderRound();
+  }
+
+  function frame(inner) {
+    var p = S.p, dots = '';
+    for (var k = 0; k < p.rounds.length; k++) dots += '<span class="' + (k < S.i ? 'done' : k === S.i ? 'now' : '') + '"></span>';
+    app.innerHTML =
+      '<div style="' + colorVars(p.c) + '">' +
+      '<div class="topbar"><button class="back" type="button" id="back">‹ Peta</button>' +
+      '<div class="stage-title"><small>Pulau ' + (S.idx + 1) + '</small><b>' + p.name + '</b></div>' +
+      '<div class="dots" role="img" aria-label="Soal ' + (S.i + 1) + ' dari ' + p.rounds.length + '">' + dots + '</div></div>' +
+      '<section class="card" id="round">' + inner + '</section>' +
+      '<div class="say"><div class="mini">' + robot() + '</div><p class="bubble" id="bubble" role="status" aria-live="polite"></p></div>' +
+      '</div>';
+    document.getElementById('back').addEventListener('click', function () { S = null; showHome(); });
+    window.scrollTo(0, 0);
+  }
+  function say(text, mood) {
+    var b = document.getElementById('bubble');
+    if (!b) return;
+    b.textContent = text;
+    b.className = 'bubble' + (mood ? ' ' + mood : '');
+  }
+  function nextButton(where) {
+    var last = S.i === S.p.rounds.length - 1;
+    where.innerHTML = '<button class="btn primary" type="button" id="next">' + (last ? 'Selesai' : 'Lanjut ›') + '</button>';
+    var n = document.getElementById('next');
+    n.focus();
+    n.addEventListener('click', function () {
+      blip();
+      S.i++;
+      if (S.i >= S.p.rounds.length) finish(); else renderRound();
+    });
+  }
+  function renderRound() {
+    if (S.p.type === 'pick') pickRound();
+    else if (S.p.type === 'pattern') patternRound();
+    else algoRound();
+  }
+
+  /* --- pilih banyak: dekomposisi & abstraksi --- */
+  function pickRound() {
+    var r = S.p.rounds[S.i];
+    var opts = shuffle(r.options);
+    frame(
+      '<p class="eyebrow">' + (S.p.id === 'dekomposisi' ? 'Tugas besar' : 'Soal') + '</p>' +
+      '<h2 class="task">' + esc(r.task) + '</h2>' +
+      (r.story ? '<p class="story">' + esc(r.story) + '</p>' : '') +
+      '<p class="prompt">' + esc(r.prompt) + '</p>' +
+      '<div class="chips" id="chips">' + opts.map(function (o, k) {
+        return '<button class="chip" type="button" aria-pressed="false" data-k="' + k + '">' + esc(o.t) + '</button>';
+      }).join('') + '</div>' +
+      '<div id="treeSlot"></div>' +
+      '<div class="actions" id="act"><button class="btn primary" type="button" id="check">Periksa</button></div>'
+    );
+    say(S.p.id === 'dekomposisi' ? 'Tugas besar ini terdiri dari beberapa bagian kecil. Bagian mana saja?' : 'Tidak semua informasi itu penting. Pilih yang benar-benar dibutuhkan.');
+
+    var chips = Array.prototype.slice.call(document.querySelectorAll('.chip'));
+    chips.forEach(function (c) {
+      c.addEventListener('click', function () {
+        c.setAttribute('aria-pressed', String(c.getAttribute('aria-pressed') !== 'true'));
+        c.classList.remove('no');
+      });
+    });
+    document.getElementById('check').addEventListener('click', function () {
+      var picked = chips.filter(function (c) { return c.getAttribute('aria-pressed') === 'true'; });
+      if (!picked.length) { say('Pilih dulu minimal satu jawaban, ya.', 'oops'); return; }
+      var wrong = picked.filter(function (c) { return !opts[+c.dataset.k].ok; });
+      var missing = opts.filter(function (o, k) { return o.ok && chips[k].getAttribute('aria-pressed') !== 'true'; });
+      if (wrong.length) {
+        S.mistakes++; bad();
+        wrong.forEach(function (c) { c.classList.add('no'); shake(c); });
+        say(opts[+wrong[0].dataset.k].why + ' Ketuk lagi untuk membatalkan pilihan.', 'oops');
+        return;
+      }
+      if (missing.length) {
+        S.mistakes++; bad();
+        shake(document.getElementById('chips'));
+        say('Hampir! Masih ada ' + missing.length + ' jawaban penting yang belum kamu pilih.', 'oops');
+        return;
+      }
+      good();
+      chips.forEach(function (c) {
+        c.disabled = true;
+        if (opts[+c.dataset.k].ok) c.classList.add('ok');
+      });
+      if (r.tree) {
+        document.getElementById('treeSlot').innerHTML =
+          '<div class="tree" aria-label="Pohon dekomposisi"><div class="root">' + esc(r.task) + '</div><div class="stem"></div><div class="branches">' +
+          r.options.filter(function (o) { return o.ok; }).map(function (o) { return '<span>' + esc(o.t) + '</span>'; }).join('') +
+          '</div></div>';
+      }
+      say(r.win, 'good');
+      nextButton(document.getElementById('act'));
+    });
+  }
+
+  /* --- pola --- */
+  function patternRound() {
+    var r = S.p.rounds[S.i];
+    var choices = shuffle([r.ans].concat(r.alt));
+    frame(
+      '<p class="eyebrow">Soal ' + (S.i + 1) + ' dari ' + S.p.rounds.length + '</p>' +
+      '<h2 class="task">Apa yang datang berikutnya?</h2>' +
+      '<div class="seq" role="list" aria-label="Barisan pola">' +
+        r.seq.map(function (it) { return '<div class="tile" role="listitem" aria-label="' + itemLabel(it) + '">' + itemHTML(it) + '</div>'; }).join('') +
+        '<div class="tile q" id="slot" role="listitem" aria-label="belum diisi">?</div>' +
+      '</div>' +
+      '<p class="prompt">Ketuk jawaban yang tepat:</p>' +
+      '<div class="choices" id="choices">' + choices.map(function (it, k) {
+        return '<button class="tile" type="button" data-k="' + k + '" aria-label="' + itemLabel(it) + '">' + itemHTML(it) + '</button>';
+      }).join('') + '</div>' +
+      '<div class="actions" id="act"></div>'
+    );
+    say('Lihat baik-baik. Bagian mana yang berulang?');
+    var done = false;
+    document.querySelectorAll('#choices .tile').forEach(function (b) {
+      b.addEventListener('click', function () {
+        if (done) return;
+        var it = choices[+b.dataset.k];
+        if (same(it, r.ans)) {
+          done = true; good();
+          var slot = document.getElementById('slot');
+          slot.innerHTML = itemHTML(it);
+          slot.classList.add('filled');
+          slot.setAttribute('aria-label', itemLabel(it));
+          document.querySelectorAll('#choices .tile').forEach(function (x) { x.disabled = true; });
+          say(r.why, 'good');
+          nextButton(document.getElementById('act'));
+        } else {
+          S.mistakes++; bad();
+          b.classList.add('no'); shake(b);
+          say('Belum tepat. Coba tunjuk satu per satu dari depan dan cari bagian yang berulang.', 'oops');
+        }
+      });
+    });
+  }
+
+  /* --- algoritma --- */
+  function key(p) { return p[0] + ',' + p[1]; }
+  function shortest(L) {
+    var rocks = {};
+    L.rocks.forEach(function (r) { rocks[key(r)] = true; });
+    var startGem = L.gem ? 0 : 1;
+    var q = [[L.start[0], L.start[1], startGem, 0]], seen = {};
+    seen[L.start + ',' + startGem] = true;
+    while (q.length) {
+      var s = q.shift();
+      if (s[0] === L.goal[0] && s[1] === L.goal[1] && s[2]) return s[3];
+      for (var d in DIRS) {
+        var r = s[0] + DIRS[d].dr, c = s[1] + DIRS[d].dc;
+        if (r < 0 || c < 0 || r > 4 || c > 4 || rocks[r + ',' + c]) continue;
+        var g = s[2] || (L.gem && r === L.gem[0] && c === L.gem[1]) ? 1 : 0;
+        var k = r + ',' + c + ',' + g;
+        if (seen[k]) continue;
+        seen[k] = true;
+        q.push([r, c, g, s[3] + 1]);
+      }
+    }
+    return -1;
+  }
+
+  function algoRound() {
+    var L = S.p.rounds[S.i];
+    var prog = [];
+    var rocks = {};
+    L.rocks.forEach(function (r) { rocks[key(r)] = true; });
+
+    var cells = '';
+    for (var r = 0; r < 5; r++) for (var c = 0; c < 5; c++) {
+      var k = r + ',' + c, inner = '', lab = '';
+      if (rocks[k]) { inner = rock(); lab = 'batu'; }
+      else if (k === key(L.goal)) { inner = star(true); lab = 'bintang'; }
+      else if (L.gem && k === key(L.gem)) { inner = gem(); lab = 'permata'; }
+      cells += '<div class="cell" data-k="' + k + '"' + (lab ? ' aria-label="' + lab + '"' : '') + '>' + inner + '</div>';
+    }
+    var cmdBtns = Object.keys(DIRS).map(function (d) {
+      return '<button class="cmd" type="button" data-d="' + d + '" aria-label="Tambah langkah ' + DIRS[d].t + '">' + arrow(DIRS[d].a) + DIRS[d].t + '</button>';
+    }).join('');
+
+    frame(
+      '<p class="eyebrow">Level ' + (S.i + 1) + ' dari ' + S.p.rounds.length + '</p>' +
+      '<h2 class="task">' + L.title + '</h2>' +
+      '<div class="algo">' +
+        '<div class="board" id="board" role="img" aria-label="Papan 5 kali 5">' + cells + '<div class="bot" id="bot">' + robot() + '</div></div>' +
+        '<div class="panel">' +
+          '<p class="label"><span>Perintah</span></p>' +
+          '<div class="cmds">' + cmdBtns + '</div>' +
+          '<p class="label"><span>Programmu</span><span id="count"></span></p>' +
+          '<ol class="program" id="prog" aria-label="Daftar langkah program"></ol>' +
+          '<div class="actions" id="act">' +
+            '<button class="btn primary" type="button" id="run">▶ Jalankan</button>' +
+            '<button class="btn" type="button" id="undo">Hapus 1</button>' +
+            '<button class="btn" type="button" id="clear">Ulang</button>' +
+          '</div>' +
+        '</div>' +
+      '</div>'
+    );
+    say(L.gem
+      ? 'Ambil permata merah dulu, lalu bawa Kompi ke bintang. Hindari batu!'
+      : S.i === 0 ? 'Ketuk tombol panah untuk menyusun langkah. Lalu tekan Jalankan.' : 'Susun langkah supaya Kompi sampai ke bintang tanpa menabrak batu.');
+
+    var bot = document.getElementById('bot');
+    var progEl = document.getElementById('prog');
+    var countEl = document.getElementById('count');
+    var pos = L.start.slice();
+
+    function place(p) { bot.style.left = (p[1] * 20) + '%'; bot.style.top = (p[0] * 20) + '%'; }
+    function resetBoard() {
+      pos = L.start.slice(); place(pos);
+      bot.classList.remove('bonk', 'win');
+      document.querySelectorAll('.cell.gone').forEach(function (c) { c.classList.remove('gone'); });
+    }
+    function paintProg() {
+      progEl.innerHTML = prog.length
+        ? prog.map(function (d, i) {
+            return '<li><button type="button" data-i="' + i + '" aria-label="Langkah ' + (i + 1) + ': ' + DIRS[d].t + '. Ketuk untuk menghapus.">' + arrow(DIRS[d].a) + '</button></li>';
+          }).join('')
+        : '<li class="empty">Belum ada langkah. Ketuk tombol panah di atas.</li>';
+      countEl.textContent = prog.length + '/' + L.max + ' langkah';
+      progEl.querySelectorAll('button').forEach(function (b) {
+        b.addEventListener('click', function () {
+          if (S.busy) return;
+          prog.splice(+b.dataset.i, 1); paintProg(); resetBoard();
+        });
+      });
+    }
+    place(pos);
+    paintProg();
+
+    document.querySelectorAll('.cmd').forEach(function (b) {
+      b.addEventListener('click', function () {
+        if (S.busy) return;
+        if (prog.length >= L.max) { say('Programnya sudah ' + L.max + ' langkah. Coba cari jalan yang lebih pendek.', 'oops'); return; }
+        prog.push(b.dataset.d); blip(); paintProg(); resetBoard();
+      });
+    });
+    document.getElementById('undo').addEventListener('click', function () { if (S.busy) return; prog.pop(); paintProg(); resetBoard(); });
+    document.getElementById('clear').addEventListener('click', function () { if (S.busy) return; prog = []; paintProg(); resetBoard(); });
+
+    function setBusy(v) {
+      S.busy = v;
+      document.querySelectorAll('.cmd, #run, #undo, #clear').forEach(function (b) { b.disabled = v; });
+    }
+
+    document.getElementById('run').addEventListener('click', async function () {
+      if (S.busy) return;
+      if (!prog.length) { say('Programnya masih kosong. Tambahkan langkah dulu.', 'oops'); return; }
+      resetBoard(); setBusy(true);
+      say('Kompi menjalankan programmu...');
+      await sleep(300);
+      var items = progEl.querySelectorAll('li');
+      var hasGem = !L.gem, fail = null;
+      for (var i = 0; i < prog.length; i++) {
+        items.forEach(function (li) { li.classList.remove('active'); });
+        items[i].classList.add('active');
+        var D = DIRS[prog[i]];
+        var nr = pos[0] + D.dr, nc = pos[1] + D.dc;
+        if (nr < 0 || nc < 0 || nr > 4 || nc > 4) { fail = 'Ups! Langkah ke-' + (i + 1) + ' (' + D.t + ') membuat Kompi keluar papan.'; }
+        else if (rocks[nr + ',' + nc]) {
+          place([pos[0] + D.dr * 0.3, pos[1] + D.dc * 0.3]);
+          await sleep(200);
+          fail = 'Ups! Langkah ke-' + (i + 1) + ' (' + D.t + ') menabrak batu.';
+        }
+        if (fail) {
+          place(pos);
+          items[i].classList.add('bad');
+          bot.classList.add('bonk');
+          S.mistakes++; bad();
+          say(fail + ' Ganti langkah itu, lalu jalankan lagi. Ini namanya debugging.', 'oops');
+          setBusy(false);
+          return;
+        }
+        pos = [nr, nc]; place(pos);
+        if (L.gem && nr === L.gem[0] && nc === L.gem[1] && !hasGem) {
+          hasGem = true; tone([880, 1175]);
+          var gc = document.querySelector('.cell[data-k="' + key(L.gem) + '"]');
+          if (gc) gc.classList.add('gone');
+        }
+        await sleep(420);
+      }
+      items.forEach(function (li) { li.classList.remove('active'); });
+      var atGoal = pos[0] === L.goal[0] && pos[1] === L.goal[1];
+      if (atGoal && hasGem) {
+        good(); bot.classList.add('win');
+        var minSteps = shortest(L);
+        say('Berhasil! Programmu memakai ' + prog.length + ' langkah.' +
+          (prog.length === minSteps ? ' Itu jalan terpendek!' : ' Jalan terpendek hanya ' + minSteps + ' langkah. Bisakah kamu menemukannya lain kali?'), 'good');
+        S.busy = false;
+        document.querySelectorAll('.cmd').forEach(function (b) { b.disabled = true; });
+        nextButton(document.getElementById('act'));
+        return;
+      }
+      S.mistakes++; bad();
+      say(atGoal
+        ? 'Kompi sampai di bintang, tapi permatanya belum diambil. Ubah jalannya supaya melewati permata.'
+        : 'Programnya selesai, tapi Kompi belum sampai di bintang. Tambahkan atau ubah langkahnya.', 'oops');
+      setBusy(false);
+    });
+  }
+
+  /* ---------- selesai ---------- */
+  function finish() {
+    var p = S.p, got = starsFor(S.mistakes);
+    best[p.id] = Math.max(best[p.id] || 0, got);
+    save();
+    var msg = got === 3 ? 'Sempurna, tanpa salah sedikit pun!' : got === 2 ? 'Bagus sekali! Hanya sedikit salah.' : 'Kamu berhasil menyelesaikan pulau ini. Coba lagi untuk dapat lebih banyak bintang!';
+    var nextP = PILAR[S.idx + 1];
+    app.innerHTML =
+      '<div style="' + colorVars(p.c) + '"><div class="topbar"><button class="back" type="button" id="back">‹ Peta</button></div>' +
+      '<section class="card finish">' +
+        '<div class="mascot">' + robot() + '</div>' +
+        '<p class="eyebrow">Pulau ' + (S.idx + 1) + ' selesai</p>' +
+        '<h2 class="task">' + p.name + '</h2>' +
+        stars(got) +
+        '<p><b>' + msg + '</b></p>' +
+        '<p>' + p.lesson + '</p>' +
+        '<div class="actions" style="justify-content:center">' +
+          (nextP ? '<button class="btn primary" type="button" id="nextIsland">Pulau berikutnya ›</button>' : '<button class="btn primary" type="button" id="toMap">Lihat semua bintang</button>') +
+          '<button class="btn" type="button" id="again">Main lagi</button>' +
+        '</div>' +
+      '</section></div>';
+    good();
+    document.getElementById('back').addEventListener('click', showHome);
+    document.getElementById('again').addEventListener('click', function () { startStage(p.id); });
+    if (nextP) document.getElementById('nextIsland').addEventListener('click', function () { startStage(nextP.id); });
+    else document.getElementById('toMap').addEventListener('click', showHome);
+    window.scrollTo(0, 0);
+  }
+
+  showHome();
+})();
+</script>
+</body>
+</html>
