@@ -47,6 +47,7 @@
 }
 
 * { box-sizing: border-box; }
+[hidden] { display: none !important; }
 body {
   margin: 0;
   background-color: var(--paper);
@@ -195,6 +196,35 @@ button:focus-visible, summary:focus-visible { outline: 3px solid var(--blue); ou
 @keyframes bob { 50% { transform: translateY(-6px); } }
 @keyframes hop { 50% { transform: translateY(-14px); } }
 @keyframes bonk { 30% { transform: rotate(-12deg); } 60% { transform: rotate(10deg); } }
+/* nama pemain & piagam */
+.banner { --c: var(--blue); --c-soft: var(--blue-soft); display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px;
+  background: var(--blue-soft); border: 3px solid var(--blue); border-radius: 18px; padding: 14px 18px; margin-bottom: 16px; }
+.banner p { min-width: 0; flex: 1 1 260px; }
+.login { max-width: 560px; margin-inline: auto; }
+.login .mascot { width: 88px; }
+.login-form { display: grid; gap: 8px; }
+.login-form label { font-weight: 800; margin-top: 6px; }
+.opt { font-weight: 400; color: var(--muted); }
+.login-form input { font: inherit; font-size: 20px; font-weight: 700; padding: 10px 14px; border: 2px solid var(--line); border-radius: 12px; background: var(--paper); color: var(--ink); width: 100%; }
+.login-form input:focus-visible { outline: 3px solid var(--blue); outline-offset: 2px; border-color: var(--blue); }
+.login-form .btn { justify-self: start; margin-top: 6px; }
+.err { color: var(--red); font-weight: 700; min-height: 1.5em; }
+.cert { text-align: center; justify-items: center; border: 6px double var(--yellow); padding-block: 32px; }
+.cert-title { font-size: clamp(24px, 5vw, 34px); color: var(--blue); }
+.cert-name { font-family: var(--font-display); font-weight: 800; font-size: clamp(34px, 8vw, 56px); line-height: 1.2; color: var(--ink);
+  border-bottom: 3px solid var(--yellow); padding-inline: 12px; max-width: 100%; overflow-wrap: anywhere; }
+.cert-class { font-weight: 800; color: var(--muted); }
+.cert-total { display: flex; align-items: center; gap: 8px; font-family: var(--font-display); font-weight: 800; font-size: 26px; }
+.cert-total svg { width: 36px; }
+.cert-list { list-style: none; padding: 0; margin: 0; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px 24px; width: 100%; max-width: 480px; }
+.cert-list li { display: flex; justify-content: space-between; align-items: center; gap: 8px; border-bottom: 1px dashed var(--line); padding-block: 4px; font-weight: 700; text-align: left; }
+.cert-list .stars svg { width: 20px; }
+.cert-sign { display: flex; align-items: center; gap: 10px; color: var(--muted); font-size: 15px; }
+.cert-sign svg { width: 40px; }
+.confirm { background: var(--red-soft); border: 2px solid var(--red); border-radius: 14px; padding: 12px 16px; display: grid; gap: 10px; text-align: left; max-width: 520px; }
+.btn.danger { background: var(--red); border-color: var(--red); color: var(--on-color); }
+.teacher h3 { font-size: 20px; margin-top: 8px; }
+
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation: none !important; transition: none !important; }
 }
@@ -209,6 +239,7 @@ button:focus-visible, summary:focus-visible { outline: 3px solid var(--blue); ou
   .tile { width: 52px; height: 52px; font-size: 22px; }
   .tile svg { width: 36px; height: 36px; }
   .topbar { padding-right: 0; padding-top: 44px; }
+  .cert-list { grid-template-columns: minmax(0, 1fr); }
 }
 </style>
 </head>
@@ -422,6 +453,30 @@ button:focus-visible, summary:focus-visible { outline: 3px solid var(--blue); ou
   try { best = JSON.parse(localStorage.getItem(KEY) || '{}') || {}; } catch (e) { best = {}; }
   function save() { try { localStorage.setItem(KEY, JSON.stringify(best)); } catch (e) {} }
 
+  /* pemain yang sedang bermain di perangkat ini, dan daftar semua pemain yang sudah selesai */
+  var player = null, roster = [];
+  try { player = JSON.parse(localStorage.getItem(KEY + '-nama') || 'null'); } catch (e) { player = null; }
+  try { roster = JSON.parse(localStorage.getItem(KEY + '-pemain') || '[]') || []; } catch (e) { roster = []; }
+  function savePlayers() {
+    try {
+      localStorage.setItem(KEY + '-nama', JSON.stringify(player));
+      localStorage.setItem(KEY + '-pemain', JSON.stringify(roster));
+    } catch (e) {}
+  }
+  function totalStars() { var t = 0; PILAR.forEach(function (p) { t += best[p.id] || 0; }); return t; }
+  function allDone() { return PILAR.every(function (p) { return best[p.id]; }); }
+  function syncRoster() {
+    if (!player) return;
+    var row = { id: player.id, nama: player.nama, kelas: player.kelas, bintang: totalStars(), tanggal: player.tanggal };
+    var at = -1;
+    roster.forEach(function (r, i) { if (r.id === player.id) at = i; });
+    if (at >= 0) roster[at] = row; else roster.unshift(row);
+    savePlayers();
+  }
+  function tanggal(iso) {
+    try { return new Date(iso).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' }); } catch (e) { return ''; }
+  }
+
   var soundOn = true, actx = null;
   try { soundOn = localStorage.getItem(KEY + '-suara') !== 'mati'; } catch (e) {}
   var soundBtn = document.getElementById('sound');
@@ -461,9 +516,13 @@ button:focus-visible, summary:focus-visible { outline: 3px solid var(--blue); ou
   function starsFor(m) { return m === 0 ? 3 : m <= 2 ? 2 : 1; }
 
   /* ---------- peta pulau ---------- */
-  function showHome() {
-    var total = 0;
-    PILAR.forEach(function (p) { total += best[p.id] || 0; });
+  function showHome(openTeacher) {
+    var total = totalStars();
+    var banner = allDone()
+      ? '<div class="banner"><p><b>Semua pulau sudah selesai!</b> ' +
+          (player ? 'Piagam untuk ' + esc(player.nama) + ' sudah siap.' : 'Tulis namamu untuk mendapatkan piagam dari Kompi.') +
+        '</p><button class="btn primary" type="button" id="toCert">' + (player ? 'Lihat piagam ›' : 'Tulis namamu ›') + '</button></div>'
+      : '';
     var cards = PILAR.map(function (p, i) {
       var got = best[p.id] || 0;
       return '<button class="island" type="button" data-id="' + p.id + '" style="' + colorVars(p.c) + '">' +
@@ -482,9 +541,22 @@ button:focus-visible, summary:focus-visible { outline: 3px solid var(--blue); ou
         '<h1>Petualangan Kompi</h1>' +
         '<p class="lead">Kompi si robot mau menjelajah empat pulau. Setiap pulau punya tantangan berpikir. Bantu Kompi mengumpulkan semua bintang!</p></div>' +
         '<div class="total">' + star(true) + '<span>' + total + ' dari 12 bintang</span><span class="bar" aria-hidden="true"><i style="width:' + (total / 12 * 100) + '%"></i></span></div>' +
-      '</header>' +
+      '</header>' + banner +
       '<section class="islands" aria-label="Pilih pulau">' + cards + '</section>' +
-      teacherNotes();
+      teacherNotes(openTeacher);
+
+    var tc = document.getElementById('toCert');
+    if (tc) tc.addEventListener('click', function () { blip(); if (player) showCert(); else showLogin(); });
+    var clr = document.getElementById('clearRoster');
+    if (clr) clr.addEventListener('click', function () { document.getElementById('clearAsk').hidden = false; clr.hidden = true; });
+    var clrNo = document.getElementById('clearNo');
+    if (clrNo) clrNo.addEventListener('click', function () { document.getElementById('clearAsk').hidden = true; clr.hidden = false; });
+    var clrYes = document.getElementById('clearYes');
+    if (clrYes) clrYes.addEventListener('click', function () {
+      roster = player ? roster.filter(function (r) { return r.id === player.id; }) : [];
+      savePlayers(); showHome(true);
+      var d = document.querySelector('.teacher'); if (d) d.scrollIntoView();
+    });
 
     app.querySelectorAll('.island').forEach(function (b) {
       b.addEventListener('click', function () { blip(); startStage(b.getAttribute('data-id')); });
@@ -492,8 +564,17 @@ button:focus-visible, summary:focus-visible { outline: 3px solid var(--blue); ou
     window.scrollTo(0, 0);
   }
 
-  function teacherNotes() {
-    return '<details class="teacher"><summary>Catatan untuk Guru</summary><div class="body">' +
+  function teacherNotes(open) {
+    var list = roster.length
+      ? '<div class="tbl"><table><thead><tr><th>Nama</th><th>Kelas</th><th>Bintang</th><th>Tanggal</th></tr></thead><tbody>' +
+          roster.map(function (r) {
+            return '<tr><td><b>' + esc(r.nama) + '</b></td><td>' + esc(r.kelas || '–') + '</td><td>' + r.bintang + ' / 12</td><td>' + tanggal(r.tanggal) + '</td></tr>';
+          }).join('') + '</tbody></table></div>' +
+        '<div class="actions"><button class="btn" type="button" id="clearRoster">Hapus daftar</button></div>' +
+        '<div class="confirm" id="clearAsk" hidden><p>Hapus semua nama di daftar ini dari perangkat? Tindakan ini tidak bisa dibatalkan.</p>' +
+          '<div class="actions"><button class="btn danger" type="button" id="clearYes">Ya, hapus daftar</button><button class="btn" type="button" id="clearNo">Batal</button></div></div>'
+      : '<p>Belum ada siswa yang menyelesaikan semua pulau di perangkat ini.</p>';
+    return '<details class="teacher"' + (open ? ' open' : '') + '><summary>Catatan untuk Guru</summary><div class="body">' +
       '<p>Permainan ini mengenalkan empat pilar berpikir komputasional untuk siswa SD kelas 3 sampai 6. Setiap pulau bisa dimainkan dalam 5–10 menit, sendiri atau berpasangan.</p>' +
       '<div class="tbl"><table><thead><tr><th>Pilar</th><th>Kegiatan di game</th><th>Pertanyaan diskusi</th></tr></thead><tbody>' +
       '<tr><td><b>Dekomposisi</b></td><td>Memilih bagian-bagian kecil dari tugas sehari-hari (memasak, bersiap sekolah, piket).</td><td>Tugas apa di rumah yang bisa kamu pecah menjadi langkah kecil?</td></tr>' +
@@ -505,7 +586,10 @@ button:focus-visible, summary:focus-visible { outline: 3px solid var(--blue); ou
       '<li><b>Bintang:</b> 3 bintang jika tanpa salah, 2 bintang jika salah 1–2 kali, 1 bintang jika salah lebih dari itu. Bintang tersimpan di browser perangkat masing-masing.</li>' +
       '<li><b>Kegiatan lanjutan tanpa komputer:</b> buat papan 5×5 dari lakban di lantai. Satu siswa menjadi “Kompi”, temannya membacakan kartu perintah Atas/Bawah/Kiri/Kanan.</li>' +
       '<li><b>Tips:</b> minta siswa membaca program dengan suara keras sebelum menekan Jalankan, supaya mereka terbiasa menelusuri langkah.</li>' +
-      '</ul></div></details>';
+      '<li><b>Nama &amp; piagam:</b> setelah keempat pulau selesai, siswa menulis nama dan kelas, lalu mendapat piagam. Tekan <b>Pemain baru</b> di halaman piagam supaya siswa berikutnya mulai dari nol di komputer yang sama.</li>' +
+      '</ul>' +
+      '<h3>Daftar pemain di perangkat ini</h3>' + list +
+      '</div></details>';
   }
 
   /* ---------- panggung ---------- */
@@ -819,6 +903,8 @@ button:focus-visible, summary:focus-visible { outline: 3px solid var(--blue); ou
     var p = S.p, got = starsFor(S.mistakes);
     best[p.id] = Math.max(best[p.id] || 0, got);
     save();
+    syncRoster();
+    var done = allDone();
     var msg = got === 3 ? 'Sempurna, tanpa salah sedikit pun!' : got === 2 ? 'Bagus sekali! Hanya sedikit salah.' : 'Kamu berhasil menyelesaikan pulau ini. Coba lagi untuk dapat lebih banyak bintang!';
     var nextP = PILAR[S.idx + 1];
     app.innerHTML =
@@ -831,15 +917,106 @@ button:focus-visible, summary:focus-visible { outline: 3px solid var(--blue); ou
         '<p><b>' + msg + '</b></p>' +
         '<p>' + p.lesson + '</p>' +
         '<div class="actions" style="justify-content:center">' +
-          (nextP ? '<button class="btn primary" type="button" id="nextIsland">Pulau berikutnya ›</button>' : '<button class="btn primary" type="button" id="toMap">Lihat semua bintang</button>') +
+          (done ? '<button class="btn primary" type="button" id="toCert">' + (player ? 'Lihat piagamku ›' : 'Tulis namamu ›') + '</button>'
+            : nextP && !best[nextP.id] ? '<button class="btn primary" type="button" id="nextIsland">Pulau berikutnya ›</button>'
+            : '<button class="btn primary" type="button" id="toMap">Ke peta ›</button>') +
           '<button class="btn" type="button" id="again">Main lagi</button>' +
         '</div>' +
       '</section></div>';
     good();
-    document.getElementById('back').addEventListener('click', showHome);
+    document.getElementById('back').addEventListener('click', function () { showHome(); });
     document.getElementById('again').addEventListener('click', function () { startStage(p.id); });
-    if (nextP) document.getElementById('nextIsland').addEventListener('click', function () { startStage(nextP.id); });
-    else document.getElementById('toMap').addEventListener('click', showHome);
+    if (done) document.getElementById('toCert').addEventListener('click', function () { blip(); if (player) showCert(); else showLogin(); });
+    else if (nextP && !best[nextP.id]) document.getElementById('nextIsland').addEventListener('click', function () { startStage(nextP.id); });
+    else document.getElementById('toMap').addEventListener('click', function () { showHome(); });
+    window.scrollTo(0, 0);
+  }
+
+  /* ---------- tulis nama ---------- */
+  function showLogin() {
+    var editing = !!player;
+    app.innerHTML =
+      '<div style="' + colorVars('blue') + '"><div class="topbar"><button class="back" type="button" id="back">‹ Peta</button></div>' +
+      '<section class="card login">' +
+        '<div class="mascot">' + robot() + '</div>' +
+        '<p class="eyebrow">Semua pulau selesai</p>' +
+        '<h2 class="task">' + (editing ? 'Ubah nama di piagam' : 'Siapa nama penjelajah hebat ini?') + '</h2>' +
+        '<p>Kamu mengumpulkan <b>' + totalStars() + ' dari 12 bintang</b>. Tulis namamu supaya Kompi bisa membuatkan piagam.</p>' +
+        '<form class="login-form" id="loginForm" novalidate>' +
+          '<label for="nama">Nama</label>' +
+          '<input type="text" id="nama" maxlength="30" autocomplete="off" placeholder="Contoh: Siti Aisyah" value="' + (editing ? esc(player.nama) : '') + '">' +
+          '<label for="kelas">Kelas <span class="opt">(boleh dikosongkan)</span></label>' +
+          '<input type="text" id="kelas" maxlength="10" autocomplete="off" placeholder="Contoh: 4B" value="' + (editing ? esc(player.kelas || '') : '') + '">' +
+          '<p class="err" id="err" role="alert"></p>' +
+          '<button class="btn primary" type="submit">Simpan dan lihat piagam</button>' +
+        '</form>' +
+      '</section></div>';
+    document.getElementById('back').addEventListener('click', function () { showHome(); });
+    var nama = document.getElementById('nama');
+    nama.focus();
+    document.getElementById('loginForm').addEventListener('submit', function (e) {
+      e.preventDefault();
+      var n = nama.value.replace(/\s+/g, ' ').trim();
+      var k = document.getElementById('kelas').value.replace(/\s+/g, ' ').trim();
+      if (n.length < 2) {
+        document.getElementById('err').textContent = 'Tulis namamu dulu, minimal 2 huruf.';
+        shake(nama); bad(); nama.focus();
+        return;
+      }
+      player = editing
+        ? { id: player.id, nama: n, kelas: k, tanggal: player.tanggal }
+        : { id: Date.now(), nama: n, kelas: k, tanggal: new Date().toISOString() };
+      syncRoster();
+      good();
+      showCert();
+    });
+    window.scrollTo(0, 0);
+  }
+
+  /* ---------- piagam ---------- */
+  function showCert() {
+    var list = PILAR.map(function (p) {
+      return '<li><span>' + p.name + '</span>' + stars(best[p.id] || 0) + '</li>';
+    }).join('');
+    app.innerHTML =
+      '<div style="' + colorVars('blue') + '"><div class="topbar"><button class="back" type="button" id="back">‹ Peta</button></div>' +
+      '<section class="card cert" aria-label="Piagam">' +
+        '<p class="eyebrow">Piagam Penghargaan</p>' +
+        '<h2 class="cert-title">Penjelajah Berpikir Komputasional</h2>' +
+        '<p>diberikan kepada</p>' +
+        '<p class="cert-name">' + esc(player.nama) + '</p>' +
+        (player.kelas ? '<p class="cert-class">Kelas ' + esc(player.kelas) + '</p>' : '') +
+        '<p>yang telah menyelesaikan keempat pulau Petualangan Kompi dan mengumpulkan</p>' +
+        '<div class="cert-total">' + star(true) + totalStars() + ' dari 12 bintang</div>' +
+        '<ul class="cert-list">' + list + '</ul>' +
+        '<div class="cert-sign">' + robot() + '<span>Ditandatangani Kompi, ' + tanggal(player.tanggal) + '</span></div>' +
+        '<div class="actions" id="certAct" style="justify-content:center">' +
+          '<button class="btn primary" type="button" id="toMap">Ke peta</button>' +
+          '<button class="btn" type="button" id="rename">Ubah nama</button>' +
+          '<button class="btn" type="button" id="newPlayer">Pemain baru</button>' +
+        '</div>' +
+        '<div class="confirm" id="newAsk" hidden>' +
+          '<p>Mulai untuk pemain baru? Bintang di perangkat ini dikosongkan. Nama <b>' + esc(player.nama) + '</b> tetap tersimpan di daftar guru.</p>' +
+          '<div class="actions"><button class="btn danger" type="button" id="newYes">Ya, pemain baru</button><button class="btn" type="button" id="newNo">Batal</button></div>' +
+        '</div>' +
+      '</section></div>';
+    document.getElementById('back').addEventListener('click', function () { showHome(); });
+    document.getElementById('toMap').addEventListener('click', function () { showHome(); });
+    document.getElementById('rename').addEventListener('click', showLogin);
+    document.getElementById('newPlayer').addEventListener('click', function () {
+      document.getElementById('newAsk').hidden = false;
+      document.getElementById('certAct').hidden = true;
+      document.getElementById('newYes').focus();
+    });
+    document.getElementById('newNo').addEventListener('click', function () {
+      document.getElementById('newAsk').hidden = true;
+      document.getElementById('certAct').hidden = false;
+    });
+    document.getElementById('newYes').addEventListener('click', function () {
+      best = {}; save();
+      player = null; savePlayers();
+      showHome();
+    });
     window.scrollTo(0, 0);
   }
 
