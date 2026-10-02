@@ -262,6 +262,89 @@ button:focus-visible, summary:focus-visible { outline: 3px solid var(--blue); ou
 .pin-form input { letter-spacing: .3em; }
 @keyframes pulse { 50% { opacity: .3; } }
 
+/* ---- gambar animasi halaman soal ---- */
+svg .an { transform-box: fill-box; transform-origin: center; }
+.scene { position: relative; border-radius: 20px; overflow: hidden; border: 3px solid var(--c); margin-bottom: 16px; background: var(--blue-soft); }
+.scene > svg { display: block; width: 100%; height: auto; }
+.scene .cap { position: absolute; left: 12px; top: 10px; background: var(--card); border: 2px solid var(--c); border-radius: 999px; padding: 2px 12px; font-size: 13px; font-weight: 800; letter-spacing: .04em; }
+.wave { animation: wave 6s linear infinite; }
+.wave.slow { animation-duration: 10s; opacity: .55; }
+.cloud { animation: drift 24s linear infinite; }
+.cloud.c2 { animation-duration: 34s; animation-delay: -12s; }
+.sunray { animation: spin 18s linear infinite; }
+.bob { animation: bob 2.6s ease-in-out infinite; }
+.blink { animation: blink 4s infinite; }
+.glow { animation: glow 1.6s ease-in-out infinite; }
+.twinkle { animation: twinkle 1.8s ease-in-out infinite; }
+/* dekomposisi: kotak besar pecah */
+.piece { animation: split 3.2s ease-in-out infinite; }
+.piece.q1 { --dx: -14px; --dy: -10px; } .piece.q2 { --dx: 14px; --dy: -10px; } .piece.q3 { --dx: -14px; --dy: 10px; } .piece.q4 { --dx: 14px; --dy: 10px; }
+/* pola: bentuk melompat bergantian */
+.beat { animation: beat 1.8s ease-in-out infinite; }
+/* abstraksi: kaca pembesar menyapu */
+.lens { animation: sweep 5s ease-in-out infinite; }
+.keep { animation: glow 1.6s ease-in-out infinite; }
+/* algoritma: robot berjalan mengikuti jalur */
+.walker { animation: walk 6s steps(1, end) infinite; }
+.dash { stroke-dasharray: 6 6; animation: dash 1s linear infinite; }
+
+.art { display: grid; grid-template-columns: minmax(0, 1fr) 132px; gap: 16px; align-items: center; }
+.art .pic { width: 132px; height: 110px; border-radius: 16px; background: var(--c-soft); display: grid; place-items: center; }
+.art .pic svg { width: 116px; height: 96px; }
+.art > div { min-width: 0; display: grid; gap: 6px; }
+.steam { animation: steam 2.2s ease-in-out infinite; }
+.steam.s2 { animation-delay: .7s; } .steam.s3 { animation-delay: 1.4s; }
+.sweepbroom { animation: broom 1.4s ease-in-out infinite; transform-origin: 50% 0%; transform-box: fill-box; }
+.dust { animation: steam 1.4s ease-out infinite; }
+.roll { animation: roll 3s ease-in-out infinite; }
+.roll.r2 { animation-delay: .25s; } .roll.r3 { animation-delay: .5s; }
+.drawpath { stroke-dasharray: 160; animation: draw 3.5s ease-in-out infinite; }
+.tail { animation: tail 1.2s ease-in-out infinite; transform-origin: 0% 100%; transform-box: fill-box; }
+.slidein { animation: slidein 2.8s ease-in-out infinite; }
+
+.card { animation: rise .45s ease-out; }
+.chip { animation: pop .35s ease-out backwards; }
+.chip[aria-pressed="true"] { transform: scale(1.04); }
+.seq .tile, .choices .tile { animation: pop .4s ease-out backwards; }
+.tile.q:not(.filled) { animation: pulse 1.4s ease-in-out infinite; }
+.tile.q.filled { animation: pop .4s ease-out; }
+.say .mini.cheer { animation: hop .45s 2; }
+.say .mini.wobble { animation: bonk .45s; }
+.say .mini svg { overflow: visible; }
+
+.board { background-color: var(--green-soft);
+  background-image: radial-gradient(var(--grid) 1.5px, transparent 1.5px); background-size: 14px 14px; }
+.cell.goal svg { animation: twinkle 1.8s ease-in-out infinite; }
+.cell.gem svg { animation: bob 2s ease-in-out infinite; }
+.cell.trail { background: radial-gradient(circle, var(--yellow) 0 12%, transparent 13%); }
+.bot.walk svg { animation: step .42s ease-in-out infinite; }
+
+.confetti { position: fixed; inset: 0; pointer-events: none; z-index: 20; overflow: hidden; }
+.confetti i { position: absolute; top: -12px; width: 10px; height: 14px; border-radius: 3px; animation: fall 1.4s ease-in forwards; }
+
+@keyframes wave { to { transform: translateX(-80px); } }
+@keyframes drift { from { transform: translateX(-120px); } to { transform: translateX(110vw); } }
+@keyframes spin { to { transform: rotate(360deg); } }
+@keyframes blink { 0%, 92%, 100% { transform: scaleY(1); } 95% { transform: scaleY(.1); } }
+@keyframes glow { 50% { opacity: .45; } }
+@keyframes twinkle { 50% { transform: scale(1.18) rotate(12deg); } }
+@keyframes split { 0%, 25%, 100% { transform: translate(0, 0); } 50%, 75% { transform: translate(var(--dx), var(--dy)); } }
+@keyframes beat { 0%, 60%, 100% { transform: translateY(0); } 30% { transform: translateY(-14px); } }
+@keyframes sweep { 0%, 100% { transform: translateX(0); } 50% { transform: translateX(150px); } }
+@keyframes walk { 0% { transform: translate(0, 0); } 16% { transform: translate(34px, 0); } 33% { transform: translate(68px, 0); } 50% { transform: translate(68px, -30px); } 66% { transform: translate(102px, -30px); } 83% { transform: translate(136px, -30px); } }
+@keyframes dash { to { stroke-dashoffset: -12; } }
+@keyframes steam { 0% { transform: translateY(6px); opacity: 0; } 40% { opacity: .9; } 100% { transform: translateY(-16px); opacity: 0; } }
+@keyframes broom { 50% { transform: rotate(-22deg); } }
+@keyframes roll { 0% { transform: translateX(-60px) rotate(-360deg); } 45%, 100% { transform: translateX(0) rotate(0); } }
+@keyframes draw { 0% { stroke-dashoffset: 160; } 60%, 100% { stroke-dashoffset: 0; } }
+@keyframes tail { 50% { transform: rotate(18deg); } }
+@keyframes slidein { 0%, 15% { transform: translateY(-30px); opacity: 0; } 45%, 80% { transform: translateY(0); opacity: 1; } 100% { transform: translateY(0); opacity: 0; } }
+@keyframes rise { from { transform: translateY(12px); } }
+@keyframes pop { from { transform: scale(.6); } 70% { transform: scale(1.06); } }
+@keyframes pulse { 50% { transform: scale(1.07); } }
+@keyframes step { 50% { transform: translateY(-4px) rotate(-4deg); } }
+@keyframes fall { to { transform: translate(var(--x), 105vh) rotate(var(--r)); } }
+
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation: none !important; transition: none !important; }
 }
@@ -276,6 +359,9 @@ button:focus-visible, summary:focus-visible { outline: 3px solid var(--blue); ou
   .tile { width: 52px; height: 52px; font-size: 22px; }
   .tile svg { width: 36px; height: 36px; }
   .topbar { padding-right: 0; padding-top: 44px; }
+  .art { grid-template-columns: minmax(0, 1fr) 96px; gap: 10px; }
+  .art .pic { width: 96px; height: 84px; }
+  .art .pic svg { width: 84px; height: 72px; }
   .cert-list { grid-template-columns: minmax(0, 1fr); }
   .tiles { grid-template-columns: minmax(0, 1fr); }
 }
@@ -290,15 +376,24 @@ button:focus-visible, summary:focus-visible { outline: 3px solid var(--blue); ou
   "use strict";
 
   /* ---------- gambar ---------- */
-  function robot() {
-    return '<svg viewBox="0 0 64 64" aria-hidden="true">' +
+  function robot(mood, attrs) {
+    var eyes = mood === 'good'
+      ? '<path d="M21 32 Q25 26 29 32 M35 32 Q39 26 43 32" fill="none" stroke="currentColor" style="color:var(--ink)" stroke-width="3" stroke-linecap="round"/>'
+      : mood === 'oops'
+        ? '<g class="an blink"><circle cx="25" cy="31.5" r="3.2" style="fill:var(--ink)"/><circle cx="39" cy="31.5" r="3.2" style="fill:var(--ink)"/></g>' +
+          '<path d="M20 25 L29 27 M44 25 L35 27" stroke="currentColor" style="color:var(--ink)" stroke-width="2.4" stroke-linecap="round"/>'
+        : '<g class="an blink"><circle cx="25" cy="30.5" r="3.6" style="fill:var(--ink)"/><circle cx="39" cy="30.5" r="3.6" style="fill:var(--ink)"/></g>';
+    var mouth = mood === 'good'
+      ? '<path d="M25 41 Q32 47 39 41" fill="none" stroke="currentColor" style="color:var(--yellow)" stroke-width="3" stroke-linecap="round"/>'
+      : mood === 'oops'
+        ? '<path d="M26 45 Q32 40 38 45" fill="none" stroke="currentColor" style="color:var(--yellow)" stroke-width="3" stroke-linecap="round"/>'
+        : '<rect x="25" y="42" width="14" height="3" rx="1.5" style="fill:var(--yellow)"/>';
+    return '<svg ' + (attrs || '') + ' viewBox="0 0 64 64" aria-hidden="true">' +
       '<line x1="32" y1="6" x2="32" y2="15" stroke="currentColor" style="color:var(--ink)" stroke-width="3" stroke-linecap="round"/>' +
-      '<circle cx="32" cy="6" r="4.5" style="fill:var(--red)"/>' +
+      '<circle class="glow" cx="32" cy="6" r="4.5" style="fill:var(--' + (mood === 'good' ? 'green' : 'red') + ')"/>' +
       '<rect x="9" y="15" width="46" height="34" rx="11" style="fill:var(--blue)"/>' +
       '<rect x="16" y="22" width="32" height="17" rx="7" style="fill:var(--card)"/>' +
-      '<circle cx="25" cy="30.5" r="3.6" style="fill:var(--ink)"/>' +
-      '<circle cx="39" cy="30.5" r="3.6" style="fill:var(--ink)"/>' +
-      '<rect x="25" y="42" width="14" height="3" rx="1.5" style="fill:var(--yellow)"/>' +
+      eyes + mouth +
       '<rect x="18" y="51" width="9" height="10" rx="3" style="fill:var(--ink)"/>' +
       '<rect x="37" y="51" width="9" height="10" rx="3" style="fill:var(--ink)"/></svg>';
   }
@@ -327,6 +422,106 @@ button:focus-visible, summary:focus-visible { outline: 3px solid var(--blue); ou
     if (s === 'triangle') return '<svg viewBox="0 0 24 24" aria-hidden="true"><polygon points="12,2 23,21 1,21" ' + f + '/></svg>';
     return '';
   }
+  /* pemandangan pulau di atas halaman soal: langit, matahari, awan, laut, dan isi khas tiap pilar */
+  function scene(id) {
+    /* lebar gambar menyesuaikan layar supaya tingginya tetap sekitar 150px */
+    var W = Math.max(320, Math.round(((app.clientWidth || 320) - 6) * 130 / 150));
+    var off = Math.round((W - 320) / 2);
+    var wave = function (y, cls, op) {
+      var d = 'M0 ' + y;
+      for (var x = 0; x <= W + 80; x += 40) d += ' Q' + (x + 20) + ' ' + (y - 6) + ' ' + (x + 40) + ' ' + y;
+      return '<path class="' + cls + '" d="' + d + ' V140 H0 Z" style="fill:var(--blue);opacity:' + op + '"/>';
+    };
+    var sky =
+      '<g transform="translate(' + (W - 34) + ' 26)"><g class="an sunray">' +
+        [0, 45, 90, 135, 180, 225, 270, 315].map(function (a) { return '<rect x="-1.5" y="-21" width="3" height="7" rx="1.5" transform="rotate(' + a + ')" style="fill:var(--yellow)"/>'; }).join('') +
+      '</g><circle r="11" style="fill:var(--yellow)"/></g>' +
+      '<g class="cloud"><ellipse cx="40" cy="22" rx="18" ry="7" style="fill:var(--card)"/><ellipse cx="52" cy="18" rx="11" ry="7" style="fill:var(--card)"/></g>' +
+      '<g class="cloud c2"><ellipse cx="0" cy="38" rx="14" ry="5" style="fill:var(--card)"/><ellipse cx="9" cy="35" rx="8" ry="5" style="fill:var(--card)"/></g>';
+    var sea = wave(112, 'wave slow', .35) + wave(118, 'wave', .6);
+    var island = '<ellipse cx="' + (W / 2) + '" cy="112" rx="' + (W / 2 - 10) + '" ry="16" style="fill:var(--yellow-soft)"/>' +
+      '<path d="M36 108 Q38 80 30 62" fill="none" stroke="currentColor" style="color:var(--ink)" stroke-width="3"/>' +
+      '<g class="an bob"><path d="M30 62 Q14 58 8 68 M30 62 Q22 48 10 50 M30 62 Q42 50 54 54 M30 62 Q46 60 50 72" fill="none" stroke="currentColor" style="color:var(--green)" stroke-width="5" stroke-linecap="round"/></g>';
+    var kompi = '<g class="an bob">' + robot('', 'x="' + (W - 80) + '" y="58" width="44" height="44"') + '</g>';
+    var mid = '';
+    if (id === 'dekomposisi') {
+      mid = '<g transform="translate(110 58)">' +
+        '<rect class="an piece q1" x="0" y="0" width="20" height="20" rx="3" style="fill:var(--red)"/>' +
+        '<rect class="an piece q2" x="22" y="0" width="20" height="20" rx="3" style="fill:var(--yellow)"/>' +
+        '<rect class="an piece q3" x="0" y="22" width="20" height="20" rx="3" style="fill:var(--green)"/>' +
+        '<rect class="an piece q4" x="22" y="22" width="20" height="20" rx="3" style="fill:var(--blue)"/></g>' +
+        '<path class="dash" d="M172 80 H230" fill="none" stroke="currentColor" style="color:var(--ink)" stroke-width="3" stroke-linecap="round"/>' +
+        '<path d="M224 73 L234 80 L224 87" fill="none" stroke="currentColor" style="color:var(--ink)" stroke-width="3" stroke-linecap="round"/>';
+    } else if (id === 'pola') {
+      var seq = ['circle:red', 'square:blue', 'triangle:yellow', 'circle:red', 'square:blue', 'triangle:yellow'];
+      mid = seq.map(function (v, i) {
+        var sp = v.split(':'), x = 72 + i * 30;
+        return '<g class="an beat" style="animation-delay:' + (i * 0.15) + 's"><svg x="' + x + '" y="70" width="24" height="24" viewBox="0 0 24 24">' + shape(sp[0], sp[1]).replace(/^<svg[^>]*>|<\/svg>$/g, '') + '</svg></g>';
+      }).join('');
+    } else if (id === 'abstraksi') {
+      var items = [[80, 80, 'triangle', 'line'], [104, 72, 'circle', 'green'], [130, 84, 'square', 'line'], [156, 70, 'circle', 'line'], [182, 80, 'square', 'green'], [208, 72, 'triangle', 'line']];
+      mid = items.map(function (it) {
+        return '<g class="' + (it[3] === 'green' ? 'keep' : '') + '"><svg x="' + it[0] + '" y="' + it[1] + '" width="18" height="18" viewBox="0 0 24 24">' + shape(it[2], it[3]).replace(/^<svg[^>]*>|<\/svg>$/g, '') + '</svg></g>';
+      }).join('') +
+        '<g class="lens"><circle cx="86" cy="80" r="17" style="fill:var(--card);opacity:.35"/><circle cx="86" cy="80" r="17" fill="none" stroke="currentColor" style="color:var(--ink)" stroke-width="4"/>' +
+        '<path d="M98 92 L110 104" stroke="currentColor" style="color:var(--ink)" stroke-width="6" stroke-linecap="round"/></g>';
+    } else {
+      mid = '<path class="dash" d="M78 92 H146 V62 H214" fill="none" stroke="currentColor" style="color:var(--ink)" stroke-width="3" stroke-linecap="round"/>' +
+        '<g transform="translate(206 50)"><g class="an twinkle">' + star(true).replace('<svg ', '<svg width="24" height="24" ') + '</g></g>' +
+        '<g class="walker">' + robot('', 'x="64" y="74" width="28" height="28"') + '</g>';
+      kompi = '';
+    }
+    var caps = { dekomposisi: 'Pecah jadi bagian kecil', pola: 'Cari yang berulang', abstraksi: 'Fokus pada yang penting', algoritma: 'Langkah demi langkah' };
+    return '<div class="scene" aria-hidden="true"><svg viewBox="0 0 ' + W + ' 130">' +
+      sky + island + '<g transform="' + (W >= 420 ? 'translate(' + (off - 48) + ' -30) scale(1.3)' : 'translate(' + off + ' 0)') + '">' + mid + '</g>' + sea + kompi + '</svg><span class="cap">' + caps[id] + '</span></div>';
+  }
+
+  /* gambar kecil yang bergerak untuk setiap soal cerita */
+  function art(key) {
+    var ink = 'stroke="currentColor" style="color:var(--ink)"';
+    var A = {
+      nasi: '<path class="steam" d="M44 30 q-5 -7 0 -14 q5 -7 0 -14" fill="none" ' + ink + ' stroke-width="2.5" stroke-linecap="round" opacity=".6"/>' +
+        '<path class="steam s2" d="M60 28 q-5 -7 0 -14 q5 -7 0 -14" fill="none" ' + ink + ' stroke-width="2.5" stroke-linecap="round" opacity=".6"/>' +
+        '<path class="steam s3" d="M76 30 q-5 -7 0 -14 q5 -7 0 -14" fill="none" ' + ink + ' stroke-width="2.5" stroke-linecap="round" opacity=".6"/>' +
+        '<ellipse cx="60" cy="52" rx="38" ry="10" style="fill:var(--yellow)"/>' +
+        '<circle cx="48" cy="49" r="3" style="fill:var(--red)"/><circle cx="66" cy="47" r="3" style="fill:var(--green)"/><circle cx="74" cy="52" r="2.5" style="fill:var(--red)"/>' +
+        '<path d="M20 52 Q24 78 60 78 Q96 78 100 52 Z" style="fill:var(--ink)"/><rect x="98" y="56" width="22" height="6" rx="3" style="fill:var(--ink)"/>',
+      sekolah: '<g class="slidein"><rect x="46" y="8" width="28" height="20" rx="2" style="fill:var(--red)"/><rect x="50" y="8" width="3" height="20" style="fill:var(--card)"/></g>' +
+        '<rect x="32" y="30" width="56" height="58" rx="12" style="fill:var(--blue)"/><rect x="40" y="30" width="40" height="22" rx="8" style="fill:var(--card);opacity:.35"/>' +
+        '<rect x="42" y="62" width="36" height="16" rx="5" style="fill:var(--yellow)"/><path d="M44 30 Q44 16 60 16 Q76 16 76 30" fill="none" ' + ink + ' stroke-width="4"/>',
+      piket: '<g class="sweepbroom"><rect x="58" y="6" width="5" height="54" rx="2" style="fill:var(--red)"/><path d="M46 58 H76 L82 82 H40 Z" style="fill:var(--yellow)"/></g>' +
+        '<circle class="dust" cx="34" cy="84" r="3" style="fill:var(--muted)"/><circle class="dust" cx="26" cy="80" r="2" style="fill:var(--muted);animation-delay:.5s"/><circle class="dust" cx="90" cy="84" r="2.5" style="fill:var(--muted)"/>' +
+        '<rect x="10" y="88" width="100" height="4" rx="2" style="fill:var(--line)"/>',
+      kelereng: [0, 1, 2, 3, 4].map(function (i) { return '<circle cx="' + (22 + i * 18) + '" cy="40" r="8" style="fill:var(--red)"/><circle cx="' + (19 + i * 18) + '" cy="37" r="2.5" style="fill:var(--card);opacity:.7"/>'; }).join('') +
+        [0, 1, 2].map(function (i) { return '<g class="an roll' + (i ? ' r' + (i + 1) : '') + '"><circle cx="' + (40 + i * 18) + '" cy="70" r="8" style="fill:var(--blue)"/><circle cx="' + (37 + i * 18) + '" cy="67" r="2.5" style="fill:var(--card);opacity:.7"/></g>'; }).join('') +
+        '<rect x="8" y="80" width="104" height="4" rx="2" style="fill:var(--line)"/>',
+      peta: '<path d="M10 14 L42 6 L78 14 L110 6 V86 L78 94 L42 86 L10 94 Z" stroke="currentColor" stroke-width="2" style="fill:var(--card);color:var(--line)"/>' +
+        '<path class="drawpath" d="M20 80 Q30 50 50 56 T84 34" fill="none" stroke="currentColor" style="color:var(--red)" stroke-width="3.5" stroke-linecap="round" stroke-dasharray="160"/>' +
+        '<path d="M80 22 L92 14 L104 22 V36 H80 Z" style="fill:var(--green)"/><rect x="88" y="28" width="7" height="8" style="fill:var(--card)"/>' +
+        '<g class="an bob"><circle cx="20" cy="74" r="6" style="fill:var(--blue)"/></g>',
+      kucing: '<path class="tail" d="M88 74 Q112 70 104 44" fill="none" stroke="currentColor" style="color:var(--yellow)" stroke-width="7" stroke-linecap="round"/>' +
+        '<ellipse cx="60" cy="74" rx="30" ry="16" style="fill:var(--yellow)"/>' +
+        '<path d="M34 36 L38 12 L52 28 Z M86 36 L82 12 L68 28 Z" style="fill:var(--yellow)"/><circle cx="60" cy="42" r="24" style="fill:var(--yellow)"/>' +
+        '<g class="an blink"><circle cx="51" cy="40" r="3.5" style="fill:var(--ink)"/><circle cx="69" cy="40" r="3.5" style="fill:var(--ink)"/></g>' +
+        '<path d="M57 49 L60 52 L63 49" fill="none" ' + ink + ' stroke-width="2" stroke-linecap="round"/>' +
+        '<path d="M44 50 H28 M44 54 L29 58 M76 50 H92 M76 54 L91 58" ' + ink + ' stroke-width="1.6" stroke-linecap="round"/>'
+    };
+    return A[key] ? '<div class="pic" aria-hidden="true"><svg viewBox="0 0 120 100">' + A[key] + '</svg></div>' : '';
+  }
+
+  function confetti() {
+    if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    var box = document.createElement('div');
+    box.className = 'confetti';
+    var cols = ['red', 'yellow', 'green', 'blue'], html = '';
+    for (var i = 0; i < 36; i++) {
+      html += '<i style="left:' + (Math.random() * 100) + '%;background:var(--' + cols[i % 4] + ');--x:' + Math.round(Math.random() * 160 - 80) + 'px;--r:' + Math.round(Math.random() * 720 - 360) + 'deg;animation-delay:' + (Math.random() * 0.35).toFixed(2) + 's;animation-duration:' + (1.1 + Math.random() * 0.8).toFixed(2) + 's"></i>';
+    }
+    box.innerHTML = html;
+    document.body.appendChild(box);
+    setTimeout(function () { box.remove(); }, 2400);
+  }
+
   var COLOR_NAME = { red: 'merah', blue: 'biru', yellow: 'kuning', green: 'hijau' };
   var SHAPE_NAME = { circle: 'lingkaran', square: 'persegi', triangle: 'segitiga' };
   var DIR_NAME = { 0: 'atas', 90: 'kanan', 180: 'bawah', 270: 'kiri' };
@@ -352,7 +547,7 @@ button:focus-visible, summary:focus-visible { outline: 3px solid var(--blue); ou
       type: 'pick',
       rounds: [
         {
-          task: 'Membuat Nasi Goreng', tree: true,
+          task: 'Membuat Nasi Goreng', art: 'nasi', tree: true,
           prompt: 'Pilih semua bagian kecil yang termasuk tugas ini.',
           options: [
             { t: 'Menyiapkan nasi dan bumbu', ok: true },
@@ -365,7 +560,7 @@ button:focus-visible, summary:focus-visible { outline: 3px solid var(--blue); ou
           win: 'Hebat! Satu tugas besar jadi empat langkah kecil yang mudah dikerjakan.'
         },
         {
-          task: 'Bersiap ke Sekolah', tree: true,
+          task: 'Bersiap ke Sekolah', art: 'sekolah', tree: true,
           prompt: 'Pilih semua bagian kecil yang termasuk tugas ini.',
           options: [
             { t: 'Mandi', ok: true },
@@ -378,7 +573,7 @@ button:focus-visible, summary:focus-visible { outline: 3px solid var(--blue); ou
           win: 'Betul! Kalau dipecah, kamu tahu apa saja yang harus dikerjakan pagi hari.'
         },
         {
-          task: 'Membersihkan Kelas', tree: true,
+          task: 'Membersihkan Kelas', art: 'piket', tree: true,
           prompt: 'Kelasmu dapat giliran piket. Pilih semua bagian tugasnya.',
           options: [
             { t: 'Menyapu lantai', ok: true },
@@ -428,7 +623,7 @@ button:focus-visible, summary:focus-visible { outline: 3px solid var(--blue); ou
       type: 'pick',
       rounds: [
         {
-          task: 'Kelereng Rina',
+          task: 'Kelereng Rina', art: 'kelereng',
           story: 'Rina memakai baju biru. Ia punya 5 kelereng. Hari itu cuacanya cerah. Ibu memberi Rina 3 kelereng lagi. Berapa kelereng Rina sekarang?',
           prompt: 'Pilih informasi yang penting untuk menjawab pertanyaan.',
           options: [
@@ -440,7 +635,7 @@ button:focus-visible, summary:focus-visible { outline: 3px solid var(--blue); ou
           win: 'Tepat! Cukup 5 + 3 = 8 kelereng. Info lainnya boleh diabaikan.'
         },
         {
-          task: 'Peta ke Rumah Budi',
+          task: 'Peta ke Rumah Budi', art: 'peta',
           story: 'Kamu mau menggambar peta supaya teman-teman bisa datang ke rumah Budi.',
           prompt: 'Apa saja yang perlu ada di peta?',
           options: [
@@ -454,7 +649,7 @@ button:focus-visible, summary:focus-visible { outline: 3px solid var(--blue); ou
           win: 'Bagus! Peta yang baik hanya berisi hal penting, jadi mudah dibaca.'
         },
         {
-          task: 'Mengenali Kucing',
+          task: 'Mengenali Kucing', art: 'kucing',
           story: 'Kompi belajar membedakan kucing dari hewan lain.',
           prompt: 'Ciri mana yang dimiliki semua kucing?',
           options: [
@@ -744,8 +939,9 @@ button:focus-visible, summary:focus-visible { outline: 3px solid var(--blue); ou
       '<div class="topbar"><button class="back" type="button" id="back">‹ Peta</button>' +
       '<div class="stage-title"><small>Pulau ' + (S.idx + 1) + (player ? ' · ' + esc(player.nama) : '') + '</small><b>' + p.name + '</b></div>' +
       '<div class="dots" role="img" aria-label="Soal ' + (S.i + 1) + ' dari ' + p.rounds.length + '">' + dots + '</div></div>' +
+      scene(p.id) +
       '<section class="card" id="round">' + inner + '</section>' +
-      '<div class="say"><div class="mini">' + robot() + '</div><p class="bubble" id="bubble" role="status" aria-live="polite"></p></div>' +
+      '<div class="say"><div class="mini" id="mini">' + robot() + '</div><p class="bubble" id="bubble" role="status" aria-live="polite"></p></div>' +
       '</div>';
     document.getElementById('back').addEventListener('click', function () { S = null; showHome(); });
     window.scrollTo(0, 0);
@@ -755,6 +951,14 @@ button:focus-visible, summary:focus-visible { outline: 3px solid var(--blue); ou
     if (!b) return;
     b.textContent = text;
     b.className = 'bubble' + (mood ? ' ' + mood : '');
+    var m = document.getElementById('mini');
+    if (m) {
+      m.innerHTML = robot(mood);
+      m.className = 'mini';
+      void m.offsetWidth;
+      if (mood) m.classList.add(mood === 'good' ? 'cheer' : 'wobble');
+    }
+    if (mood === 'good') confetti();
   }
   function nextButton(where) {
     var last = S.i === S.p.rounds.length - 1;
@@ -779,12 +983,12 @@ button:focus-visible, summary:focus-visible { outline: 3px solid var(--blue); ou
     var r = S.p.rounds[S.i];
     var opts = shuffle(r.options);
     frame(
-      '<p class="eyebrow">' + (S.p.id === 'dekomposisi' ? 'Tugas besar' : 'Soal') + '</p>' +
-      '<h2 class="task">' + esc(r.task) + '</h2>' +
+      '<div class="art"><div><p class="eyebrow">' + (S.p.id === 'dekomposisi' ? 'Tugas besar' : 'Soal') + ' ' + (S.i + 1) + ' dari ' + S.p.rounds.length + '</p>' +
+      '<h2 class="task">' + esc(r.task) + '</h2></div>' + art(r.art) + '</div>' +
       (r.story ? '<p class="story">' + esc(r.story) + '</p>' : '') +
       '<p class="prompt">' + esc(r.prompt) + '</p>' +
       '<div class="chips" id="chips">' + opts.map(function (o, k) {
-        return '<button class="chip" type="button" aria-pressed="false" data-k="' + k + '">' + esc(o.t) + '</button>';
+        return '<button class="chip" type="button" aria-pressed="false" data-k="' + k + '" style="animation-delay:' + (k * 0.06) + 's">' + esc(o.t) + '</button>';
       }).join('') + '</div>' +
       '<div id="treeSlot"></div>' +
       '<div class="actions" id="act"><button class="btn primary" type="button" id="check">Periksa</button></div>'
@@ -908,7 +1112,8 @@ button:focus-visible, summary:focus-visible { outline: 3px solid var(--blue); ou
       if (rocks[k]) { inner = rock(); lab = 'batu'; }
       else if (k === key(L.goal)) { inner = star(true); lab = 'bintang'; }
       else if (L.gem && k === key(L.gem)) { inner = gem(); lab = 'permata'; }
-      cells += '<div class="cell" data-k="' + k + '"' + (lab ? ' aria-label="' + lab + '"' : '') + '>' + inner + '</div>';
+      var cls = lab === 'bintang' ? ' goal' : lab === 'permata' ? ' gem' : '';
+      cells += '<div class="cell' + cls + '" data-k="' + k + '"' + (lab ? ' aria-label="' + lab + '"' : '') + '>' + inner + '</div>';
     }
     var cmdBtns = Object.keys(DIRS).map(function (d) {
       return '<button class="cmd" type="button" data-d="' + d + '" aria-label="Tambah langkah ' + DIRS[d].t + '">' + arrow(DIRS[d].a) + DIRS[d].t + '</button>';
@@ -944,8 +1149,9 @@ button:focus-visible, summary:focus-visible { outline: 3px solid var(--blue); ou
     function place(p) { bot.style.left = (p[1] * 20) + '%'; bot.style.top = (p[0] * 20) + '%'; }
     function resetBoard() {
       pos = L.start.slice(); place(pos);
-      bot.classList.remove('bonk', 'win');
+      bot.classList.remove('bonk', 'win', 'walk');
       document.querySelectorAll('.cell.gone').forEach(function (c) { c.classList.remove('gone'); });
+      document.querySelectorAll('.cell.trail').forEach(function (c) { c.classList.remove('trail'); });
     }
     function paintProg() {
       progEl.innerHTML = prog.length
@@ -984,7 +1190,10 @@ button:focus-visible, summary:focus-visible { outline: 3px solid var(--blue); ou
       if (!prog.length) { say('Programnya masih kosong. Tambahkan langkah dulu.', 'oops'); return; }
       resetBoard(); setBusy(true);
       say('Kompi menjalankan programmu...');
+      var mine = S;
+      var gone = function () { return S !== mine || !document.body.contains(bot); };
       await sleep(300);
+      if (gone()) return;
       var items = progEl.querySelectorAll('li');
       var hasGem = !L.gem, fail = null;
       for (var i = 0; i < prog.length; i++) {
@@ -996,9 +1205,11 @@ button:focus-visible, summary:focus-visible { outline: 3px solid var(--blue); ou
         else if (rocks[nr + ',' + nc]) {
           place([pos[0] + D.dr * 0.3, pos[1] + D.dc * 0.3]);
           await sleep(200);
+          if (gone()) return;
           fail = 'Ups! Langkah ke-' + (i + 1) + ' (' + D.t + ') menabrak batu.';
         }
         if (fail) {
+          bot.classList.remove('walk');
           place(pos);
           items[i].classList.add('bad');
           bot.classList.add('bonk');
@@ -1007,6 +1218,9 @@ button:focus-visible, summary:focus-visible { outline: 3px solid var(--blue); ou
           setBusy(false);
           return;
         }
+        var was = document.querySelector('.cell[data-k="' + key(pos) + '"]');
+        if (was) was.classList.add('trail');
+        bot.classList.add('walk');
         pos = [nr, nc]; place(pos);
         if (L.gem && nr === L.gem[0] && nc === L.gem[1] && !hasGem) {
           hasGem = true; tone([880, 1175]);
@@ -1014,8 +1228,10 @@ button:focus-visible, summary:focus-visible { outline: 3px solid var(--blue); ou
           if (gc) gc.classList.add('gone');
         }
         await sleep(420);
+        if (gone()) return;
       }
       items.forEach(function (li) { li.classList.remove('active'); });
+      bot.classList.remove('walk');
       var atGoal = pos[0] === L.goal[0] && pos[1] === L.goal[1];
       if (atGoal && hasGem) {
         good(); bot.classList.add('win');
@@ -1048,7 +1264,7 @@ button:focus-visible, summary:focus-visible { outline: 3px solid var(--blue); ou
     app.innerHTML =
       '<div style="' + colorVars(p.c) + '"><div class="topbar"><button class="back" type="button" id="back">‹ Peta</button></div>' +
       '<section class="card finish">' +
-        '<div class="mascot">' + robot() + '</div>' +
+        '<div class="mascot">' + robot('good') + '</div>' +
         '<p class="eyebrow">Pulau ' + (S.idx + 1) + ' selesai</p>' +
         '<h2 class="task">' + p.name + '</h2>' +
         stars(got) +
@@ -1061,7 +1277,7 @@ button:focus-visible, summary:focus-visible { outline: 3px solid var(--blue); ou
           '<button class="btn" type="button" id="again">Main lagi</button>' +
         '</div>' +
       '</section></div>';
-    good();
+    good(); confetti();
     document.getElementById('back').addEventListener('click', function () { showHome(); });
     document.getElementById('again').addEventListener('click', function () { startStage(p.id); });
     if (done) document.getElementById('toCert').addEventListener('click', function () { blip(); showCert(); });
